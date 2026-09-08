@@ -98,6 +98,41 @@ export function diasDeLaSemana(fecha: string): string[] {
   });
 }
 
+/** El dia 1 del mes que contiene `fecha`, ej. '2026-09-15' -> '2026-09-01'. */
+export function primerDiaMes(fecha: string): string {
+  const [anio, mes] = fecha.split('-').map(Number);
+  return `${anio}-${String(mes).padStart(2, '0')}-01`;
+}
+
+/** Suma (o resta) `n` meses a `mesISO` (se espera dia 01), devuelve el dia 01 del mes resultante. */
+export function sumarMeses(mesISO: string, n: number): string {
+  const [anio, mes] = mesISO.split('-').map(Number);
+  return fechaLocal(new Date(anio, mes - 1 + n, 1));
+}
+
+/**
+ * Todas las fechas ('YYYY-MM-DD') de la grilla mensual tipo calendario para
+ * el mes de `mesISO` (dia 01): desde el lunes de la semana que contiene el
+ * dia 1, hasta el domingo de la semana que contiene el ultimo dia del mes.
+ * Siempre resulta en un multiplo de 7 fechas (5 o 6 semanas completas).
+ */
+export function grillaMensual(mesISO: string): string[] {
+  const [anio, mes] = mesISO.split('-').map(Number);
+  const primerDia = new Date(anio, mes - 1, 1);
+  const ultimoDia = new Date(anio, mes, 0);
+  const inicio = lunesDeSemana(primerDia);
+  const fin = new Date(ultimoDia);
+  fin.setDate(ultimoDia.getDate() + (6 - diaSemanaISO(ultimoDia)));
+
+  const dias: string[] = [];
+  const cursor = new Date(inicio);
+  while (cursor.getTime() <= fin.getTime()) {
+    dias.push(fechaLocal(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dias;
+}
+
 function diasEnMes(anio: number, mesIndice0: number): number {
   return new Date(anio, mesIndice0 + 1, 0).getDate();
 }
@@ -293,40 +328,68 @@ export async function getEventoDetalle(id: number): Promise<EventoDetalle | null
   return { ...evento, recurrencia };
 }
 
-/** Todos los eventos del dia `fecha`: filas reales de ese dia + ocurrencias virtuales de eventos recurrentes. */
-export async function listEventosDia(fecha: string): Promise<EventoDelDia[]> {
-  const db = await getDb();
+function compararEventosDelDia(a: EventoDelDia, b: EventoDelDia): number {
+  if (a.todo_el_dia !== b.todo_el_dia) return b.todo_el_dia - a.todo_el_dia;
+  return (a.hora_inicio ?? '99:99').localeCompare(b.hora_inicio ?? '99:99');
+}
 
-  const eventosDelDia = await db.getAllAsync<EventoCalendario>(
-    `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE recurrencia_id IS NULL AND fecha = ?`,
-    fecha
+/**
+ * Todos los eventos entre `fechaInicio` y `fechaFin` (ambas inclusive),
+ * agrupados por fecha: filas reales de esos dias + ocurrencias virtuales de
+ * eventos recurrentes (calculadas dia por dia con `ocurreEnFecha`). Pensado
+ * para la vista semanal/mensual, que necesitan varios dias de una vez sin
+ * repetir la consulta de recurrentes por cada uno.
+ */
+export async function listEventosRango(fechaInicio: string, fechaFin: string): Promise<Record<string, EventoDelDia[]>> {
+  const db = await getDb();
+  const resultado: Record<string, EventoDelDia[]> = {};
+
+  const eventosDelRango = await db.getAllAsync<EventoCalendario>(
+    `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE recurrencia_id IS NULL AND fecha BETWEEN ? AND ?`,
+    fechaInicio,
+    fechaFin
   );
+  for (const e of eventosDelRango) {
+    (resultado[e.fecha] ??= []).push({ ...e, esRecurrente: false });
+  }
 
   const eventosRecurrentes = await db.getAllAsync<EventoCalendario>(
     `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE recurrencia_id IS NOT NULL`
   );
-
-  const ocurrencias: EventoDelDia[] = [...eventosDelDia.map((e) => ({ ...e, esRecurrente: false }))];
-
+  const recurrenciasPorId = new Map<number, RecurrenciaInfo>();
   for (const evento of eventosRecurrentes) {
-    const rec = await db.getFirstAsync<{ frecuencia: Frecuencia; intervalo: number; fecha_fin: string | null }>(
-      'SELECT frecuencia, intervalo, fecha_fin FROM recurrencias WHERE id = ?',
-      evento.recurrencia_id
-    );
-    if (!rec) continue;
-    const dias = await db.getAllAsync<{ dia_semana: number }>(
-      'SELECT dia_semana FROM recurrencia_dias_semana WHERE recurrencia_id = ?',
-      evento.recurrencia_id
-    );
-    const recurrencia: RecurrenciaInfo = { ...rec, dias_semana: dias.map((d) => d.dia_semana) };
-    if (ocurreEnFecha(evento.fecha, recurrencia, fecha)) {
-      ocurrencias.push({ ...evento, fecha, esRecurrente: true });
+    if (!evento.recurrencia_id) continue;
+    let recurrencia = recurrenciasPorId.get(evento.recurrencia_id);
+    if (!recurrencia) {
+      const rec = await db.getFirstAsync<{ frecuencia: Frecuencia; intervalo: number; fecha_fin: string | null }>(
+        'SELECT frecuencia, intervalo, fecha_fin FROM recurrencias WHERE id = ?',
+        evento.recurrencia_id
+      );
+      if (!rec) continue;
+      const dias = await db.getAllAsync<{ dia_semana: number }>(
+        'SELECT dia_semana FROM recurrencia_dias_semana WHERE recurrencia_id = ?',
+        evento.recurrencia_id
+      );
+      recurrencia = { ...rec, dias_semana: dias.map((d) => d.dia_semana) };
+      recurrenciasPorId.set(evento.recurrencia_id, recurrencia);
+    }
+    let cursor = fechaInicio;
+    while (cursor <= fechaFin) {
+      if (ocurreEnFecha(evento.fecha, recurrencia, cursor)) {
+        (resultado[cursor] ??= []).push({ ...evento, fecha: cursor, esRecurrente: true });
+      }
+      cursor = sumarDias(cursor, 1);
     }
   }
 
-  ocurrencias.sort((a, b) => {
-    if (a.todo_el_dia !== b.todo_el_dia) return b.todo_el_dia - a.todo_el_dia;
-    return (a.hora_inicio ?? '99:99').localeCompare(b.hora_inicio ?? '99:99');
-  });
-  return ocurrencias;
+  for (const fecha of Object.keys(resultado)) {
+    resultado[fecha].sort(compararEventosDelDia);
+  }
+  return resultado;
+}
+
+/** Todos los eventos del dia `fecha`: filas reales de ese dia + ocurrencias virtuales de eventos recurrentes. */
+export async function listEventosDia(fecha: string): Promise<EventoDelDia[]> {
+  const rango = await listEventosRango(fecha, fecha);
+  return rango[fecha] ?? [];
 }
