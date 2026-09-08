@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v12)
+# Takt — Especificación funcional (borrador v13)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -100,6 +100,9 @@ Solo dos estados guardados, más una vista calculada:
 - **Moneda — confirmado.** CLP (pesos chilenos) por defecto.
 - **Resumen financiero mensual — confirmado, NUEVO.** Vista con gráfico de gasto por categoría, para ver de un vistazo en qué se va la plata.
 - **Seguimiento del % de ahorro — confirmado, NUEVO.** No solo definir el % objetivo, sino ver mes a mes si realmente se está cumpliendo.
+- **Dinero disponible para gastar / de ocio — confirmado, NUEVO (idea tuya).** La app muestra cuánto puedes gastar libremente este mes, aparte de lo que va a ahorro: Ingreso total (sueldo + ganancias) − monto de ahorro objetivo − gastos obligatorios del mes = disponible para gastar. Este número baja en tiempo real cada vez que registras un gasto puntual, y se resetea cuando entra el sueldo del mes siguiente.
+
+**Duda nueva:** ¿te sirve un solo número de "disponible" (ya descontando ahorro Y gastos obligatorios), o prefieres ver dos por separado — "disponible después de ahorro" y "disponible libre después de gastos obligatorios también"?
 
 ## 5. Deporte / Entrenamiento
 
