@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v7)
+# Takt — Especificación funcional (borrador v8)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -68,16 +68,15 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 - Se puede marcar como completada (como una to-do list).
 - Metas de mediano/largo plazo (objetivos trimestrales o anuales) — confirmado, se modelan como tareas de plazo largo dentro de este mismo módulo.
 
-**Propuesta para resolver Pendiente/Activa/Atrasada (a confirmar):**
+**Estados de tarea — CONFIRMADO:**
 
-Como tu definición de "pendiente" (fuera de plazo) es exactamente lo mismo que "atrasada", tener las dos como vistas separadas sería redundante. Propongo simplificar a solo dos estados guardados, más una vista calculada:
+Solo dos estados guardados, más una vista calculada:
 
 - **Activa**: estado por defecto de toda tarea no completada.
 - **Completada**: se marca manualmente cuando la terminas (como una to-do list).
-- **Atrasada**: no es un estado que se guarda aparte, es una condición automática = una tarea Activa que tiene plazo y ese plazo ya pasó. Se muestra como una vista/filtro (y probablemente una marca visual, ej. en rojo) dentro de las Activas, no como una cuarta lista independiente.
+- **Atrasada**: no es un estado que se guarda aparte, es una condición automática = una tarea Activa que tiene plazo y ese plazo ya pasó. Se muestra como una vista/filtro (con marca visual, ej. en rojo) dentro de las Activas, no como una cuarta lista independiente.
 - Una tarea **sin plazo definido** siempre es Activa hasta que se completa — nunca puede quedar "atrasada" porque no hay fecha que vencer.
-
-Con esto, las vistas finales serían: Todas / Activas / Atrasadas (subconjunto de Activas) / Completadas — y se elimina el nombre "Pendiente" para no tener dos palabras significando lo mismo. ¿Te hace sentido o prefieres mantener "Pendiente" como el nombre de esa vista en vez de "Atrasada"?
+- Vistas finales: Todas / Activas / Atrasadas (subconjunto de Activas) / Completadas. Se elimina el nombre "Pendiente" para no tener dos palabras significando lo mismo.
 
 ## 4. Finanzas
 
@@ -85,10 +84,11 @@ Con esto, las vistas finales serían: Todas / Activas / Atrasadas (subconjunto d
 - % de ahorro objetivo.
 - Gastos obligatorios estimados mensuales (suscripciones, cuentas, etc.).
 - Registro de gastos puntuales con fecha y hora, generando historial de gastos.
+- **Ganancias / Ingresos extra — confirmado.** Además del sueldo fijo, registrar ingresos puntuales no recurrentes: venta de algo, un trabajo extra remunerado, etc. Igual que los gastos puntuales: monto, fecha y hora, descripción, con su propio historial. Estas ganancias se suman al saldo disponible del mes (sueldo + ganancias − gastos obligatorios − gastos puntuales).
 
 **Dudas pendientes:**
 - ¿Los gastos obligatorios se configuran una vez como plantilla recurrente que se descuenta solo cada mes?
-- ¿Los gastos deben tener categoría (comida, transporte, entretenimiento, etc.)?
+- ¿Los gastos (y ahora también las ganancias) deben tener categoría (ej. gastos: comida, transporte, entretenimiento — ganancias: venta, trabajo extra, regalo)?
 - Moneda: ¿pesos chilenos (CLP)?
 
 ## 5. Deporte / Entrenamiento
