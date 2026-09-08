@@ -1,62 +1,87 @@
-# Takt — Funcionalidades de la app
+# Takt — Especificación funcional (borrador v2)
 
-Borrador inicial con todo lo que la app podría incluir, organizado por área. Esto es punto de partida: lo revisamos, ajustamos, y después vemos qué más conviene agregar.
+Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**. Cada módulo se detalla abajo con lo que ya definimos, seguido de dudas a resolver y propuestas de cosas a agregar.
 
-## 1. Hábitos
+## 1. Comida
 
-- Crear hábitos personalizados: nombre, ícono, color y frecuencia (diario, semanal, X veces por semana, días específicos).
-- Marcar cumplido / no cumplido cada día.
-- Rachas (streaks) y contador de días consecutivos.
-- Historial visual tipo calendario de cumplimiento (heatmap estilo GitHub).
-- Recordatorios y notificaciones configurables por hábito.
-- Categorías de hábitos (salud, estudio, trabajo, ocio, etc.).
-- Metas numéricas asociadas a un hábito (ej. "leer 20 páginas", no solo check/no-check).
-- Hábitos negativos a evitar (ej. "no fumar"), con contador de días sin recaída.
-- Pausar un hábito temporalmente sin perder su historial.
+**Entidades:** Ingredientes, Productos, Recetas.
 
-## 2. Horarios y rutina diaria
+- Ingredientes y Productos pueden tener valores nutricionales asignados.
+- Las Recetas se arman seleccionando ingredientes/productos ya guardados en la base de datos, con unidad de medida y cantidad para cada uno.
+- El valor nutricional de una receta se calcula automáticamente en base a los valores nutricionales y cantidades de sus ingredientes.
+- Las Recetas tienen categorías multi-seleccionables (desayuno, cena, snack, etc.).
+- Esta categoría es la que conecta con el Calendario: un bloque "desayuno" en el calendario debe poder mostrar directamente las recetas guardadas con esa categoría.
 
-- Agenda diaria por bloques de tiempo (time blocking).
-- Rutinas predefinidas (mañana, noche, fin de semana) que se repiten automáticamente.
-- Vista de calendario en día, semana y mes.
-- Recordatorios de inicio y fin de cada bloque de actividad.
-- Sincronización con el calendario del teléfono (Google Calendar u otro).
-- Plantillas de horario reutilizables.
-- Reacomodo automático de bloques siguientes si una actividad se atrasa.
+**Dudas:**
+- ¿Cuál es la diferencia entre "Ingrediente" y "Producto"? Mi interpretación: Ingrediente = alimento genérico (ej. "pechuga de pollo", "arroz") con valores nutricionales por 100g/100ml, y Producto = algo comprado con marca específica (ej. "Yogur Soprole 150g") con los datos nutricionales de su etiqueta. ¿Es así, o los quieres tratar como lo mismo?
+- ¿Un Producto puede usarse también como componente de una Receta (igual que un Ingrediente), o los Productos son solo para registrar compras/despensa?
+- ¿Las Recetas tienen porciones/rendimiento (ej. "esta receta rinde 4 porciones") para saber si el valor nutricional calculado es total o por porción?
+- ¿Quieres un registro diario de lo que efectivamente comiste (aparte de simplemente completar el bloque del calendario), o el cumplimiento del bloque de comida ya cuenta como "comida registrada"?
 
-## 3. Comidas y nutrición
+## 2. Calendario
 
-- Registro de comidas del día: desayuno, almuerzo, cena, snacks.
-- Planificador semanal de comidas (meal plan).
-- Recetario guardado con ingredientes y pasos.
-- Lista de compras generada automáticamente a partir del plan semanal.
-- Registro de calorías y macronutrientes (opcional, con base de datos de alimentos).
-- Registro de consumo de agua durante el día.
-- Recordatorios para comer o hidratarse a ciertas horas.
-- Preferencias y restricciones alimentarias (vegetariano, sin gluten, alergias) para filtrar recetas.
+- Tipos de evento: clases, gimnasio, comidas, viajes, estudio, entrega de trabajos, certámenes (evaluaciones), etc.
+- Conexión con otros módulos:
+  - Bloque de comida → sección Comida (sugiere recetas de esa categoría).
+  - Bloque de gimnasio → sección Deporte.
+  - Clases, entregas de trabajo, evaluaciones → sección Tareas.
+- Viaje y estudio, por ahora, parecieran ser eventos "libres" sin módulo dedicado propio.
 
-## 4. Otros aspectos de la vida
+**Dudas:**
+- ¿Los eventos recurrentes (clases todas las semanas a la misma hora) se configuran una vez y se repiten solos, o se crean manualmente cada semana?
+- En un bloque de gimnasio, ¿quieres poder asignarle de antemano qué rutina vas a hacer (planificación), o el vínculo con Deporte es solo después, al registrar lo que hiciste?
+- En un bloque de comida, cuando seleccionas una receta desde el calendario, ¿eso también debería armar automáticamente la lista de compras de la semana?
 
-- Sueño: horas dormidas y calidad del descanso.
-- Estado de ánimo diario (mood tracker) con notas breves.
-- Finanzas básicas: gastos diarios y presupuesto simple.
-- Tareas y pendientes (to-do list), separado de los hábitos.
-- Actividad física: registro de entrenamientos.
-- Notas rápidas o diario personal (journaling).
-- Metas de mediano y largo plazo (objetivos trimestrales o anuales).
+## 3. Tareas
 
-## 5. Funcionalidades transversales
+- Crear tareas, con vistas de: pendientes, activas, completadas y atrasadas (si tienen plazo vencido).
+- Categorías de tareas personalizables (ej. "tareas", "evaluaciones").
+- Se conecta con Calendario (fechas de entrega/evaluación aparecen ahí también).
 
-- Dashboard de inicio con resumen del día: hábitos pendientes, próxima actividad, próxima comida.
-- Estadísticas y gráficos de progreso semanal/mensual.
-- Notificaciones push agrupadas e inteligentes (evitar saturar).
-- Modo oscuro y claro.
-- Widgets para la pantalla de inicio del teléfono.
-- Backup automático / sincronización en la nube.
-- Exportar datos (CSV o PDF).
-- Personalización visual: temas, colores, íconos.
-- Uso multi-dispositivo con los mismos datos.
+**Dudas:**
+- ¿Qué diferencia a una tarea "pendiente" de una "activa"? (ej. ¿pendiente = no iniciada, activa = en progreso?)
+- ¿Las tareas necesitan prioridad (alta/media/baja), subtareas o checklist interno, o solo título + descripción + plazo + categoría?
+- Al completar una tarea con fecha en el calendario, ¿su evento en el calendario debería marcarse como hecho automáticamente?
+
+## 4. Finanzas
+
+- Sueldo mensual, que se renueva/aumenta el saldo disponible cada vez que empieza un mes nuevo.
+- % de ahorro objetivo.
+- Gastos obligatorios estimados mensuales (suscripciones, cuentas, etc.).
+- Registro de gastos puntuales con fecha y hora, generando historial de gastos.
+
+**Dudas:**
+- Los "gastos obligatorios" (suscripciones, cuentas) ¿se configuran una vez como una plantilla recurrente que se descuenta solo cada mes, o hay que registrarlos manualmente cada vez que se pagan?
+- ¿Los gastos deben tener categoría (comida, transporte, entretenimiento, etc.) para poder ver en qué se te va la plata, o por ahora solo un monto + fecha + descripción?
+- Asumo que la moneda es pesos chilenos (CLP) — ¿correcto?
+
+## 5. Deporte / Entrenamiento
+
+- Rutinas con nombre propio, que quedan guardadas en el calendario cuando se realizan.
+- Por sesión se guarda: ejercicios realizados, cantidad, peso usado y duración total del entrenamiento.
+- Los ejercicios son entidades reutilizables entre rutinas, y recuerdan la última cantidad y peso usado, para llevar continuidad del progreso.
+- Todo queda como historial.
+
+**Dudas:**
+- "Cantidad" en un ejercicio, ¿se refiere a series × repeticiones (ej. 4 series de 8 repeticiones), o es un solo número por ejercicio?
+- ¿Una Rutina es una plantilla planificada (ej. "Rutina Push: press banca 4x8, ...") que después ejecutas y comparas contra lo real, o el registro de la rutina ES directamente lo que hiciste ese día, sin plan previo?
+- ¿Los ejercicios se agrupan por grupo muscular o tipo (pecho, espalda, piernas, cardio) para organizarlos mejor?
+
+## Cosas del primer borrador que no aparecen aquí todavía
+
+El borrador original incluía hábitos generales (tomar agua, dormir, ánimo, lectura, meditación) que no calzan directamente en ninguno de los 5 módulos actuales. ¿Los dejamos fuera de la app, los integramos como un 6to módulo "Hábitos", o los repartimos dentro de los módulos existentes (ej. agua y sueño dentro de Comida/Deporte)?
+
+## Propuestas (funcionalidades que podrían sumar valor)
+
+- Lista de compras automática generada desde el plan semanal de comidas.
+- Gráfico de progreso de peso/repeticiones por ejercicio a lo largo del tiempo.
+- Vista de balance financiero proyectado: sueldo − gastos obligatorios − gastos variables = disponible vs. meta de ahorro.
+- Plantillas de rutina de entrenamiento reutilizables (separando plan de lo realmente ejecutado).
+- Recurrencia configurable de eventos en el calendario (clases semanales, pago mensual de cuentas).
+- Prioridad y/o subtareas dentro de una tarea.
+- Notificaciones/recordatorios configurables por módulo (comida, gimnasio, tareas, pago de cuentas).
+- Dashboard con resumen del día: próxima clase/comida/entrenamiento, tareas del día, gasto acumulado del mes.
 
 ---
 
-**Siguiente paso:** revisar esta lista juntos, sacar/agregar lo que corresponda, organizarla por prioridad o fases de desarrollo, y proponer funcionalidades adicionales.
+**Siguiente paso:** responder las dudas marcadas arriba y decidir qué propuestas suman, para dejar la especificación cerrada antes de empezar a construir.
