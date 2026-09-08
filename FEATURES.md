@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v6)
+# Takt — Especificación funcional (borrador v7)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -24,8 +24,9 @@ Idea: formatos de importación específicos y documentados para tipos de conteni
 
 Para que esto funcione bien conviene que la propia app incluya un botón "copiar instrucciones para IA", que copie el formato exacto + un prompt listo para pegar en cualquier chat junto con el contenido original — así no hay que memorizar el formato.
 
+- **Confirmado:** si al importar una Receta o Sesión aparece un ingrediente/ejercicio que no existe todavía guardado en la app, la app pregunta antes de crearlo (no se crea automático). Si se crea un Ingrediente/Producto nuevo sin toda su info nutricional, queda marcado como "info incompleta" (ver sección Comida).
+
 **Dudas pendientes:**
-- Al importar una Receta o Sesión, si un ingrediente/ejercicio mencionado no existe todavía guardado en la app, ¿se crea automáticamente o se pide confirmación antes de crearlo? Esto importa para no duplicar ejercicios y romper el historial de "peso/repeticiones anteriores".
 - ¿La importación asistida por IA la dejamos solo para Recetas y Entrenamientos por ahora, o de una vez la pensamos también para otros tipos (ej. una Tarea a partir del enunciado de una evaluación, un Gasto a partir de una boleta)?
 
 ## 1. Comida
@@ -33,15 +34,15 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 **Entidades:** Ingredientes, Productos, Recetas.
 
 - **Ingrediente**: alimento genérico (huevo, lechuga, zanahoria) con valores nutricionales, normalmente por 100g/100ml.
-- **Producto**: item de marca específica comprado (ej. jugo de una marca) con sus propios valores nutricionales.
-- Las Recetas se arman seleccionando ingredientes/productos guardados, con unidad de medida y cantidad para cada uno.
+- **Producto**: item de marca específica comprado (ej. jugo de una marca), con campo de **marca** (para poder buscarlo por marca después) y sus propios valores nutricionales.
+- Las Recetas se arman seleccionando **ingredientes y/o productos** guardados — confirmado que ambos pueden ser componentes de una receta — con unidad de medida y cantidad para cada uno.
 - El valor nutricional de una receta se calcula automáticamente en base a los valores nutricionales y cantidades de sus componentes.
+- **Info nutricional incompleta**: si un Ingrediente o Producto queda guardado sin todos sus valores nutricionales completos (por ejemplo, uno creado al vuelo durante una importación), debe quedar marcado visualmente como "info incompleta" para poder encontrarlo y completarlo/editarlo después fácilmente.
 - Registro de calorías y macronutrientes — confirmado.
 - Registro de consumo de agua durante el día — confirmado.
 - Las Recetas tienen categorías multi-seleccionables (desayuno, cena, snack, etc.), que conectan con el Calendario: un bloque "desayuno" muestra directamente las recetas de esa categoría.
 
 **Dudas pendientes:**
-- ¿Un Producto puede usarse también como componente de una Receta (igual que un Ingrediente), o los Productos son solo para registrar compras/despensa?
 - ¿Las Recetas tienen porciones/rendimiento (ej. "rinde 4 porciones") para saber si el valor nutricional calculado es total o por porción?
 - ¿Quieres un registro diario de lo que efectivamente comiste, aparte de completar el bloque del calendario?
 - ¿Restricciones o preferencias alimentarias (vegetariano, sin gluten, alergias) para filtrar recetas — la agregamos?
@@ -65,10 +66,18 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 - Crear tareas, con categorías personalizables (ej. "tareas", "evaluaciones").
 - Se conecta con Calendario (fechas de entrega/evaluación aparecen ahí también).
 - Se puede marcar como completada (como una to-do list).
-- **Pendiente** = fuera de plazo. **Activa** = aún dentro de plazo.
 - Metas de mediano/largo plazo (objetivos trimestrales o anuales) — confirmado, se modelan como tareas de plazo largo dentro de este mismo módulo.
 
-**⚠️ Punto a confirmar:** esta definición hace que "pendiente" sea básicamente lo mismo que "atrasada" (mencionado en la idea original como una cuarta vista aparte). ¿"Pendiente" y "Atrasada" son la misma vista, o quieres que sean cosas distintas? Y las tareas sin plazo definido, ¿son siempre "activas" hasta completarse?
+**Propuesta para resolver Pendiente/Activa/Atrasada (a confirmar):**
+
+Como tu definición de "pendiente" (fuera de plazo) es exactamente lo mismo que "atrasada", tener las dos como vistas separadas sería redundante. Propongo simplificar a solo dos estados guardados, más una vista calculada:
+
+- **Activa**: estado por defecto de toda tarea no completada.
+- **Completada**: se marca manualmente cuando la terminas (como una to-do list).
+- **Atrasada**: no es un estado que se guarda aparte, es una condición automática = una tarea Activa que tiene plazo y ese plazo ya pasó. Se muestra como una vista/filtro (y probablemente una marca visual, ej. en rojo) dentro de las Activas, no como una cuarta lista independiente.
+- Una tarea **sin plazo definido** siempre es Activa hasta que se completa — nunca puede quedar "atrasada" porque no hay fecha que vencer.
+
+Con esto, las vistas finales serían: Todas / Activas / Atrasadas (subconjunto de Activas) / Completadas — y se elimina el nombre "Pendiente" para no tener dos palabras significando lo mismo. ¿Te hace sentido o prefieres mantener "Pendiente" como el nombre de esa vista en vez de "Atrasada"?
 
 ## 4. Finanzas
 
