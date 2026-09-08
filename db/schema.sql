@@ -367,6 +367,7 @@ CREATE TABLE configuracion_finanzas (
   saldo_inicial REAL NOT NULL DEFAULT 0,
   moneda TEXT NOT NULL DEFAULT 'CLP'
 );
+INSERT INTO configuracion_finanzas (id) VALUES (1);
 
 CREATE TABLE categorias_finanzas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
