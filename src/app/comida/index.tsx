@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { Link, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,16 +26,18 @@ export default function ComidaHubScreen() {
 
         {OPCIONES.map((op) => (
           <Link key={op.href} href={op.href} asChild>
-            <ThemedView type="backgroundElement" style={styles.card}>
-              <Ionicons name={op.icon as any} size={28} color={theme.text} />
-              <ThemedView style={styles.cardTexto}>
-                <ThemedText type="smallBold">{op.titulo}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {op.desc}
-                </ThemedText>
+            <Pressable>
+              <ThemedView type="backgroundElement" style={styles.card}>
+                <Ionicons name={op.icon as any} size={28} color={theme.text} />
+                <ThemedView style={styles.cardTexto}>
+                  <ThemedText type="smallBold">{op.titulo}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {op.desc}
+                  </ThemedText>
+                </ThemedView>
+                <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
               </ThemedView>
-              <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-            </ThemedView>
+            </Pressable>
           </Link>
         ))}
       </SafeAreaView>
