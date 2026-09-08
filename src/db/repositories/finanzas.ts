@@ -1,9 +1,7 @@
 import { getDb } from '../client';
 
 export interface ConfiguracionFinanzas {
-  sueldo_mensual: number;
-  dia_pago: number; // 1-31
-  porcentaje_ahorro: number; // 0-100
+  porcentaje_ahorro: number; // 0-100, aplicado sobre el total de ganancias recurrentes activas
   saldo_inicial: number;
   moneda: string;
 }
@@ -16,7 +14,7 @@ export interface CategoriaFinanzas {
   tipo: TipoCategoriaFinanzas;
 }
 
-export type TipoMovimiento = 'sueldo' | 'ganancia' | 'gasto' | 'gasto_obligatorio';
+export type TipoMovimiento = 'ganancia' | 'gasto';
 
 export interface MovimientoFinanciero {
   id: number;
@@ -28,12 +26,12 @@ export interface MovimientoFinanciero {
   categoria_nombre: string | null;
   fecha: string; // 'YYYY-MM-DD'
   hora: string | null; // 'HH:MM'
-  gasto_obligatorio_id: number | null;
+  movimiento_recurrente_id: number | null;
   creado_en: string;
 }
 
 export interface DatosMovimiento {
-  tipo: 'gasto' | 'ganancia';
+  tipo: TipoMovimiento;
   titulo: string;
   descripcion: string;
   monto: number;
@@ -42,8 +40,9 @@ export interface DatosMovimiento {
   hora: string;
 }
 
-export interface GastoObligatorio {
+export interface MovimientoRecurrente {
   id: number;
+  tipo: TipoMovimiento;
   titulo: string;
   descripcion: string | null;
   monto: number;
@@ -54,7 +53,8 @@ export interface GastoObligatorio {
   creado_en: string;
 }
 
-export interface DatosGastoObligatorio {
+export interface DatosMovimientoRecurrente {
+  tipo: TipoMovimiento;
   titulo: string;
   descripcion: string;
   monto: number;
@@ -107,26 +107,18 @@ export function formatearMonto(monto: number): string {
 
 export async function getConfiguracion(): Promise<ConfiguracionFinanzas> {
   const db = await getDb();
-  const fila = await db.getFirstAsync<ConfiguracionFinanzas>('SELECT * FROM configuracion_finanzas WHERE id = 1');
+  const fila = await db.getFirstAsync<ConfiguracionFinanzas>(
+    'SELECT porcentaje_ahorro, saldo_inicial, moneda FROM configuracion_finanzas WHERE id = 1'
+  );
   if (fila) return fila;
   await db.runAsync('INSERT INTO configuracion_finanzas (id) VALUES (1)');
-  return {
-    sueldo_mensual: 0,
-    dia_pago: 1,
-    porcentaje_ahorro: 0,
-    saldo_inicial: 0,
-    moneda: 'CLP',
-  };
+  return { porcentaje_ahorro: 0, saldo_inicial: 0, moneda: 'CLP' };
 }
 
 export async function actualizarConfiguracion(datos: ConfiguracionFinanzas): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `UPDATE configuracion_finanzas
-     SET sueldo_mensual = ?, dia_pago = ?, porcentaje_ahorro = ?, saldo_inicial = ?, moneda = ?
-     WHERE id = 1`,
-    datos.sueldo_mensual,
-    datos.dia_pago,
+    'UPDATE configuracion_finanzas SET porcentaje_ahorro = ?, saldo_inicial = ?, moneda = ? WHERE id = 1',
     datos.porcentaje_ahorro,
     datos.saldo_inicial,
     datos.moneda
@@ -210,26 +202,27 @@ export async function eliminarMovimiento(id: number): Promise<void> {
   await db.runAsync('DELETE FROM movimientos_financieros WHERE id = ?', id);
 }
 
-const SELECT_GASTOS_OBLIGATORIOS = `
-  SELECT g.*, c.nombre AS categoria_nombre
-  FROM gastos_obligatorios g
-  LEFT JOIN categorias_finanzas c ON c.id = g.categoria_id
+const SELECT_RECURRENTES = `
+  SELECT r.*, c.nombre AS categoria_nombre
+  FROM movimientos_recurrentes r
+  LEFT JOIN categorias_finanzas c ON c.id = r.categoria_id
 `;
 
-export async function listGastosObligatorios(): Promise<GastoObligatorio[]> {
+export async function listMovimientosRecurrentes(): Promise<MovimientoRecurrente[]> {
   const db = await getDb();
-  return db.getAllAsync<GastoObligatorio>(`${SELECT_GASTOS_OBLIGATORIOS} ORDER BY g.dia_cobro`);
+  return db.getAllAsync<MovimientoRecurrente>(`${SELECT_RECURRENTES} ORDER BY r.tipo, r.dia_cobro`);
 }
 
-export async function getGastoObligatorio(id: number): Promise<GastoObligatorio | null> {
+export async function getMovimientoRecurrente(id: number): Promise<MovimientoRecurrente | null> {
   const db = await getDb();
-  return db.getFirstAsync<GastoObligatorio>(`${SELECT_GASTOS_OBLIGATORIOS} WHERE g.id = ?`, id);
+  return db.getFirstAsync<MovimientoRecurrente>(`${SELECT_RECURRENTES} WHERE r.id = ?`, id);
 }
 
-export async function crearGastoObligatorio(datos: DatosGastoObligatorio): Promise<number> {
+export async function crearMovimientoRecurrente(datos: DatosMovimientoRecurrente): Promise<number> {
   const db = await getDb();
   const result = await db.runAsync(
-    'INSERT INTO gastos_obligatorios (titulo, descripcion, monto, dia_cobro, categoria_id) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO movimientos_recurrentes (tipo, titulo, descripcion, monto, dia_cobro, categoria_id) VALUES (?, ?, ?, ?, ?, ?)',
+    datos.tipo,
     datos.titulo.trim(),
     datos.descripcion.trim() || null,
     datos.monto,
@@ -239,10 +232,11 @@ export async function crearGastoObligatorio(datos: DatosGastoObligatorio): Promi
   return result.lastInsertRowId;
 }
 
-export async function actualizarGastoObligatorio(id: number, datos: DatosGastoObligatorio): Promise<void> {
+export async function actualizarMovimientoRecurrente(id: number, datos: DatosMovimientoRecurrente): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    'UPDATE gastos_obligatorios SET titulo = ?, descripcion = ?, monto = ?, dia_cobro = ?, categoria_id = ? WHERE id = ?',
+    'UPDATE movimientos_recurrentes SET tipo = ?, titulo = ?, descripcion = ?, monto = ?, dia_cobro = ?, categoria_id = ? WHERE id = ?',
+    datos.tipo,
     datos.titulo.trim(),
     datos.descripcion.trim() || null,
     datos.monto,
@@ -252,20 +246,20 @@ export async function actualizarGastoObligatorio(id: number, datos: DatosGastoOb
   );
 }
 
-export async function alternarActivoGastoObligatorio(id: number, activo: boolean): Promise<void> {
+export async function alternarActivoMovimientoRecurrente(id: number, activo: boolean): Promise<void> {
   const db = await getDb();
-  await db.runAsync('UPDATE gastos_obligatorios SET activo = ? WHERE id = ?', activo ? 1 : 0, id);
+  await db.runAsync('UPDATE movimientos_recurrentes SET activo = ? WHERE id = ?', activo ? 1 : 0, id);
 }
 
-export async function eliminarGastoObligatorio(id: number): Promise<void> {
+export async function eliminarMovimientoRecurrente(id: number): Promise<void> {
   const db = await getDb();
-  await db.runAsync('DELETE FROM gastos_obligatorios WHERE id = ?', id);
+  await db.runAsync('DELETE FROM movimientos_recurrentes WHERE id = ?', id);
 }
 
 /**
- * Revisa si corresponde generar el movimiento del sueldo del mes y/o de algun
- * gasto obligatorio activo (segun su dia de cobro) y los crea si todavia no
- * existen para el mes actual. Se debe llamar al entrar a Finanzas.
+ * Revisa cada movimiento recurrente activo y genera su instancia del mes
+ * actual (segun su dia de cobro) si todavia no existe. Se debe llamar al
+ * entrar a Finanzas.
  */
 export async function sincronizarMovimientosAutomaticos(): Promise<void> {
   const db = await getDb();
@@ -273,46 +267,30 @@ export async function sincronizarMovimientosAutomaticos(): Promise<void> {
   const mes = mesActualTexto();
   const diaHoy = hoy.getDate();
   const diasEnMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
-  const config = await getConfiguracion();
 
-  if (config.sueldo_mensual > 0) {
-    const diaPago = Math.min(config.dia_pago, diasEnMes);
-    if (diaHoy >= diaPago) {
-      const yaExiste = await db.getFirstAsync<{ id: number }>(
-        `SELECT id FROM movimientos_financieros WHERE tipo = 'sueldo' AND fecha LIKE ? LIMIT 1`,
-        `${mes}%`
-      );
-      if (!yaExiste) {
-        const fecha = `${mes}-${String(diaPago).padStart(2, '0')}`;
-        await db.runAsync(
-          `INSERT INTO movimientos_financieros (tipo, titulo, monto, fecha) VALUES ('sueldo', 'Sueldo', ?, ?)`,
-          config.sueldo_mensual,
-          fecha
-        );
-      }
-    }
-  }
-
-  const obligatorios = await db.getAllAsync<GastoObligatorio>('SELECT * FROM gastos_obligatorios WHERE activo = 1');
-  for (const g of obligatorios) {
-    const diaCobro = Math.min(g.dia_cobro, diasEnMes);
+  const recurrentes = await db.getAllAsync<MovimientoRecurrente>(
+    'SELECT * FROM movimientos_recurrentes WHERE activo = 1'
+  );
+  for (const r of recurrentes) {
+    const diaCobro = Math.min(r.dia_cobro, diasEnMes);
     if (diaHoy < diaCobro) continue;
     const yaExiste = await db.getFirstAsync<{ id: number }>(
-      `SELECT id FROM movimientos_financieros WHERE tipo = 'gasto_obligatorio' AND gasto_obligatorio_id = ? AND fecha LIKE ? LIMIT 1`,
-      g.id,
+      `SELECT id FROM movimientos_financieros WHERE movimiento_recurrente_id = ? AND fecha LIKE ? LIMIT 1`,
+      r.id,
       `${mes}%`
     );
     if (yaExiste) continue;
     const fecha = `${mes}-${String(diaCobro).padStart(2, '0')}`;
     await db.runAsync(
-      `INSERT INTO movimientos_financieros (tipo, titulo, descripcion, monto, categoria_id, fecha, gasto_obligatorio_id)
-       VALUES ('gasto_obligatorio', ?, ?, ?, ?, ?, ?)`,
-      g.titulo,
-      g.descripcion,
-      g.monto,
-      g.categoria_id,
+      `INSERT INTO movimientos_financieros (tipo, titulo, descripcion, monto, categoria_id, fecha, movimiento_recurrente_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      r.tipo,
+      r.titulo,
+      r.descripcion,
+      r.monto,
+      r.categoria_id,
       fecha,
-      g.id
+      r.id
     );
   }
 }
@@ -322,23 +300,29 @@ export async function calcularSaldoTotal(): Promise<number> {
   const config = await getConfiguracion();
   const fila = await db.getFirstAsync<{ ingresos: number; egresos: number }>(
     `SELECT
-       COALESCE(SUM(CASE WHEN tipo IN ('sueldo', 'ganancia') THEN monto ELSE 0 END), 0) AS ingresos,
-       COALESCE(SUM(CASE WHEN tipo IN ('gasto', 'gasto_obligatorio') THEN monto ELSE 0 END), 0) AS egresos
+       COALESCE(SUM(CASE WHEN tipo = 'ganancia' THEN monto ELSE 0 END), 0) AS ingresos,
+       COALESCE(SUM(CASE WHEN tipo = 'gasto' THEN monto ELSE 0 END), 0) AS egresos
      FROM movimientos_financieros`
   );
   return config.saldo_inicial + (fila?.ingresos ?? 0) - (fila?.egresos ?? 0);
 }
 
 export async function calcularResumenMes(mes: string = mesActualTexto()): Promise<ResumenMes> {
+  const db = await getDb();
   const config = await getConfiguracion();
   const movimientos = await listMovimientos(mes);
+
+  const filaRecurrentes = await db.getFirstAsync<{ total: number }>(
+    `SELECT COALESCE(SUM(monto), 0) AS total FROM movimientos_recurrentes WHERE tipo = 'ganancia' AND activo = 1`
+  );
+  const gananciasRecurrentesActivas = filaRecurrentes?.total ?? 0;
 
   let ingresos = 0;
   let gastos = 0;
   const porCategoria = new Map<string, number>();
 
   for (const m of movimientos) {
-    if (m.tipo === 'sueldo' || m.tipo === 'ganancia') {
+    if (m.tipo === 'ganancia') {
       ingresos += m.monto;
     } else {
       gastos += m.monto;
@@ -347,7 +331,7 @@ export async function calcularResumenMes(mes: string = mesActualTexto()): Promis
     }
   }
 
-  const ahorroObjetivo = (config.porcentaje_ahorro / 100) * config.sueldo_mensual;
+  const ahorroObjetivo = (config.porcentaje_ahorro / 100) * gananciasRecurrentesActivas;
   const ahorroReal = ingresos - gastos;
   const disponible = ingresos - ahorroObjetivo - gastos;
   const porCategoriaGasto = [...porCategoria.entries()]

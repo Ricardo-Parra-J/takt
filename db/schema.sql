@@ -361,9 +361,7 @@ CREATE TABLE subtareas (
 
 CREATE TABLE configuracion_finanzas (
   id INTEGER PRIMARY KEY CHECK (id = 1), -- fila única
-  sueldo_mensual REAL NOT NULL DEFAULT 0,
-  dia_pago INTEGER NOT NULL DEFAULT 1, -- día del mes en que se acredita el sueldo
-  porcentaje_ahorro REAL NOT NULL DEFAULT 0, -- 0-100
+  porcentaje_ahorro REAL NOT NULL DEFAULT 0, -- 0-100, aplicado sobre el total de ganancias recurrentes activas
   saldo_inicial REAL NOT NULL DEFAULT 0,
   moneda TEXT NOT NULL DEFAULT 'CLP'
 );
@@ -376,29 +374,33 @@ CREATE TABLE categorias_finanzas (
   UNIQUE(nombre, tipo)
 );
 
-CREATE TABLE gastos_obligatorios (
+-- Plantillas de cobros/ingresos que se repiten todos los meses en el mismo dia
+-- (sueldo, arriendo que cobras a alguien, Netflix, etc.) -- unificado para
+-- 'gasto' y 'ganancia' en una sola tabla, con activar/desactivar y edicion.
+CREATE TABLE movimientos_recurrentes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tipo TEXT NOT NULL, -- 'gasto' | 'ganancia'
   titulo TEXT NOT NULL,
   descripcion TEXT,
   monto REAL NOT NULL,
-  dia_cobro INTEGER NOT NULL, -- 1-31
+  dia_cobro INTEGER NOT NULL, -- 1-31 (se recorta al ultimo dia real del mes si este es mas corto)
   categoria_id INTEGER REFERENCES categorias_finanzas(id),
   activo INTEGER NOT NULL DEFAULT 1,
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Todo movimiento real de dinero: sueldo del mes, ganancias puntuales, gastos puntuales,
--- y la instancia mensual generada de cada gasto obligatorio.
+-- Todo movimiento real de dinero: puntuales (ingresados a mano) y la instancia
+-- mensual generada automaticamente de cada movimiento recurrente activo.
 CREATE TABLE movimientos_financieros (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tipo TEXT NOT NULL, -- 'sueldo' | 'ganancia' | 'gasto' | 'gasto_obligatorio'
+  tipo TEXT NOT NULL, -- 'ganancia' | 'gasto'
   titulo TEXT NOT NULL,
   descripcion TEXT,
   monto REAL NOT NULL, -- siempre positivo; el signo (suma o resta) lo da 'tipo'
   categoria_id INTEGER REFERENCES categorias_finanzas(id),
   fecha TEXT NOT NULL,
   hora TEXT,
-  gasto_obligatorio_id INTEGER REFERENCES gastos_obligatorios(id), -- si tipo='gasto_obligatorio'
+  movimiento_recurrente_id INTEGER REFERENCES movimientos_recurrentes(id), -- si vino de uno recurrente
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX idx_movimientos_fecha ON movimientos_financieros(fecha);
