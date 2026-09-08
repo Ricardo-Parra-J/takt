@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v11)
+# Takt — Especificación funcional (borrador v12)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -6,7 +6,9 @@ Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finan
 
 **Todo local, sin nube ni cuenta.** Base de datos SQLite dentro del propio teléfono (vía `expo-sqlite`, incluido en Expo, sin configuración nativa extra). Encaja bien con lo relacional de los datos de Takt (recetas hechas de ingredientes con cantidades, rutinas hechas de ejercicios con series/repeticiones/peso, tareas con categorías, gastos con categorías).
 
-**Exportación e importación de datos — funcionalidad central (no opcional).** Ya que no hay nube, esto cumple dos roles: respaldo manual de tus datos, y forma de pasar tus datos a otro teléfono si algún día cambias de equipo. Exporta todo (recetas, ingredientes, productos, rutinas, ejercicios, tareas, gastos, etc.) a un archivo — la idea es un archivo JSON legible y portable — que luego se puede importar de vuelta o en otro dispositivo. Se guarda/comparte con las herramientas propias del teléfono (ej. guardarlo en Google Drive, enviarlo por correo, etc., a elección tuya al momento de exportar).
+**Exportación e importación de datos — funcionalidad central (no opcional).** Ya que no hay nube, esto cumple dos roles: respaldo manual de tus datos, y forma de pasar tus datos a otro teléfono si algún día cambias de equipo. Exporta todo (recetas, ingredientes, productos, rutinas, ejercicios, tareas, gastos, etc.) a un archivo — la idea es un archivo JSON legible y portable — que luego se puede importar de vuelta o en otro dispositivo.
+
+**Guardar en Google Drive — confirmado.** Al exportar, se abre el menú nativo de "Compartir" del teléfono, y ahí eliges Google Drive (o cualquier otro destino: correo, WhatsApp, otra nube) como lugar para guardar el respaldo. No requiere conectar una cuenta de Google dentro de la app ni integración con su API — se apoya en las herramientas que ya tiene el teléfono, y funciona igual con cualquier otro servicio, no solo Drive.
 
 **Nota:** al ser local, no hay sincronización automática entre dispositivos — si usas la app en más de un teléfono, la forma de mantenerlos al día es exportar en uno e importar en el otro.
 
