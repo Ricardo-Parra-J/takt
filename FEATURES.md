@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v5)
+# Takt — Especificación funcional (borrador v6)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -9,6 +9,24 @@ Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finan
 **Exportación e importación de datos — funcionalidad central (no opcional).** Ya que no hay nube, esto cumple dos roles: respaldo manual de tus datos, y forma de pasar tus datos a otro teléfono si algún día cambias de equipo. Exporta todo (recetas, ingredientes, productos, rutinas, ejercicios, tareas, gastos, etc.) a un archivo — la idea es un archivo JSON legible y portable — que luego se puede importar de vuelta o en otro dispositivo. Se guarda/comparte con las herramientas propias del teléfono (ej. guardarlo en Google Drive, enviarlo por correo, etc., a elección tuya al momento de exportar).
 
 **Nota:** al ser local, no hay sincronización automática entre dispositivos — si usas la app en más de un teléfono, la forma de mantenerlos al día es exportar en uno e importar en el otro.
+
+## Exportación e Importación
+
+No es solo respaldo: es la forma central de traer contenido a la app sin tipear todo a mano.
+
+### Backup completo
+- Exporta todo el contenido de la app (recetas, ingredientes, productos, rutinas, ejercicios, tareas, gastos, etc.) a un archivo JSON.
+- Se puede importar de vuelta o llevar a otro teléfono.
+
+### Importación asistida por IA (por tipo de contenido) — NUEVO
+
+Idea: formatos de importación específicos y documentados para tipos de contenido puntuales — para empezar, **Receta** (con sus ingredientes) y **Sesión de entrenamiento** (con sus ejercicios, series, repeticiones y peso) — pensados para poder pedirle a cualquier chat de IA (ChatGPT, Claude, etc.) que convierta texto libre a ese formato. Ejemplo de uso: encuentras una receta en internet, se la pasas a un chat de IA junto con el formato de Takt, la IA te devuelve el archivo/texto ya estructurado, y lo importas directo — sin tipear cada ingrediente a mano. Mismo flujo para describir en palabras una sesión de entrenamiento que acabas de hacer.
+
+Para que esto funcione bien conviene que la propia app incluya un botón "copiar instrucciones para IA", que copie el formato exacto + un prompt listo para pegar en cualquier chat junto con el contenido original — así no hay que memorizar el formato.
+
+**Dudas pendientes:**
+- Al importar una Receta o Sesión, si un ingrediente/ejercicio mencionado no existe todavía guardado en la app, ¿se crea automáticamente o se pide confirmación antes de crearlo? Esto importa para no duplicar ejercicios y romper el historial de "peso/repeticiones anteriores".
+- ¿La importación asistida por IA la dejamos solo para Recetas y Entrenamientos por ahora, o de una vez la pensamos también para otros tipos (ej. una Tarea a partir del enunciado de una evaluación, un Gasto a partir de una boleta)?
 
 ## 1. Comida
 
@@ -82,7 +100,7 @@ Confirmado que se agrega, pero no encaja de lleno en ninguno de los 5 módulos. 
 ## Transversales confirmadas
 
 - Modo oscuro y claro — Fase 1, estándar.
-- Exportar/Importar datos — ya cubierto arriba como parte central de la arquitectura (no es Fase 2).
+- Exportar/Importar datos — ver sección dedicada más abajo.
 - Widgets de pantalla de inicio — Fase 2 (requiere trabajo nativo extra).
 - Personalización visual (temas, colores, íconos) — Fase 2.
 - Multi-dispositivo — no automático al ser local; se logra exportando desde un teléfono e importando en el otro.
