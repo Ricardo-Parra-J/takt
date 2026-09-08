@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v14)
+# Takt — Especificación funcional (borrador v15)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -105,6 +105,7 @@ Solo dos estados guardados, más una vista calculada:
 
 Se deja como un solo número (ya descontando ahorro y gastos obligatorios juntos) por simplicidad — fácil de cambiar a mostrar los dos por separado más adelante si en el uso diario se echa de menos el detalle.
 - **Metas de ahorro con nombre y propósito — confirmado, Fase 2.** Además del % de ahorro general del mes, fondos de ahorro específicos (ej. "viaje: meta $500.000, llevas $120.000"). Se agrega más adelante sin romper lo ya definido.
+- **Saldo total acumulado — confirmado, NUEVO.** Se ingresa una vez un saldo inicial (cuánta plata tienes hoy), y desde ahí la app lo actualiza solo con cada movimiento: sube con sueldo y ganancias, baja con gastos obligatorios y puntuales. A diferencia del "disponible para gastar" (que se resetea cada mes), el saldo total es acumulativo y nunca se resetea. Limitación a tener presente: solo es preciso si se registran en la app todos los movimientos de plata relevantes; gastos hechos por fuera sin anotar desalinean el saldo real del que muestra la app.
 
 ## 5. Deporte / Entrenamiento
 
