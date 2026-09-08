@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v9)
+# Takt — Especificación funcional (borrador v10)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -42,6 +42,7 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 - Registro de consumo de agua durante el día — confirmado.
 - Las Recetas tienen categorías multi-seleccionables (desayuno, cena, snack, etc.), que conectan con el Calendario: un bloque "desayuno" muestra directamente las recetas de esa categoría.
 - **Etiquetas dietéticas — confirmado.** No se agregan como un perfil de restricciones personales, sino como categorías/etiquetas adicionales de la Receta (vegetariano, sin gluten, vegano, etc.), multi-seleccionables igual que las de tipo de comida, para poder filtrar recetas al buscarlas.
+- **Recetas favoritas — confirmado, NUEVO.** Marcar recetas como favoritas para acceso rápido.
 
 **Registro diario de comidas — confirmado, NUEVO.**
 - Se lleva un registro de lo efectivamente comido cada día (no solo marcar el bloque del calendario como hecho).
@@ -84,6 +85,10 @@ Solo dos estados guardados, más una vista calculada:
 - Una tarea **sin plazo definido** siempre es Activa hasta que se completa — nunca puede quedar "atrasada" porque no hay fecha que vencer.
 - Vistas finales: Todas / Activas / Atrasadas (subconjunto de Activas) / Completadas. Se elimina el nombre "Pendiente" para no tener dos palabras significando lo mismo.
 
+**Confirmado, NUEVO:**
+- Prioridad de tarea (alta/media/baja).
+- Subtareas/checklist dentro de una tarea, para tareas grandes que se dividen en pasos.
+
 ## 4. Finanzas
 
 - Sueldo mensual, que se renueva/aumenta el saldo disponible cada mes.
@@ -93,6 +98,8 @@ Solo dos estados guardados, más una vista calculada:
 - **Categorías — confirmado.** Tanto gastos como ganancias tienen categoría (ej. gastos: comida, transporte, entretenimiento — ganancias: venta, trabajo extra, regalo).
 - **Gastos obligatorios — confirmado.** Se configuran una sola vez como gasto recurrente (ej. "Netflix, se cobra el día 5 de cada mes"), y la app genera/descuenta automáticamente el gasto en la fecha de cobro correspondiente cada mes.
 - **Moneda — confirmado.** CLP (pesos chilenos) por defecto.
+- **Resumen financiero mensual — confirmado, NUEVO.** Vista con gráfico de gasto por categoría, para ver de un vistazo en qué se va la plata.
+- **Seguimiento del % de ahorro — confirmado, NUEVO.** No solo definir el % objetivo, sino ver mes a mes si realmente se está cumpliendo.
 
 ## 5. Deporte / Entrenamiento
 
@@ -103,9 +110,16 @@ Solo dos estados guardados, más una vista calculada:
 - Los ejercicios son entidades reutilizables entre presets y sesiones, y recuerdan la última serie/repeticiones/peso usado para llevar continuidad del progreso.
 - **Agrupación por grupo muscular — confirmado.** Los ejercicios se agrupan por grupo muscular (pecho, espalda, piernas, cardio, etc.).
 
-## Sueño
+**Confirmado, NUEVO:**
+- Gráfico de progreso por ejercicio a lo largo del tiempo (peso/repeticiones), para ver la evolución real.
+- Temporizador de descanso entre series durante un entrenamiento en vivo.
 
-Confirmado que se agrega, pero no encaja de lleno en ninguno de los 5 módulos. Propuesta: registro rápido de horas y calidad de sueño directo desde el Dashboard (sin ser un módulo aparte), ya que no tiene módulo propio como los otros. A confirmar.
+## Métricas de salud (Sueño y Peso corporal)
+
+No encajan de lleno en ninguno de los 5 módulos, así que viven como registros rápidos desde el Dashboard en vez de tener módulo propio.
+
+- **Sueño** — confirmado que se agrega: horas dormidas y calidad del descanso. A confirmar si vive en el Dashboard como propuse.
+- **Peso corporal — confirmado, NUEVO.** Registro simple de peso a lo largo del tiempo, que conecta con las metas nutricionales de Comida y el progreso de entrenamiento de Deporte.
 
 ## Transversales confirmadas
 
@@ -114,6 +128,9 @@ Confirmado que se agrega, pero no encaja de lleno en ninguno de los 5 módulos. 
 - Widgets de pantalla de inicio — Fase 2 (requiere trabajo nativo extra).
 - Personalización visual (temas, colores, íconos) — Fase 2.
 - Multi-dispositivo — no automático al ser local; se logra exportando desde un teléfono e importando en el otro.
+- **Bloqueo de la app (PIN / huella / Face ID) — confirmado, NUEVO.** Importante al guardar datos financieros y de salud sensibles en un dispositivo local.
+- **Recordatorio periódico de respaldo — confirmado, NUEVO.** Como el respaldo depende de exportar manualmente (no hay nube), la app avisa si ha pasado mucho tiempo sin un respaldo.
+- **Resumen diario automático — confirmado, NUEVO.** Recuento generado por la app (no un diario manual) de lo comido, entrenado, completado y gastado en el día.
 
 ## Descartado
 
