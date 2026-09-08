@@ -132,7 +132,7 @@ export default function RutinaFormScreen() {
             await eliminarPreset(Number(id));
             router.back();
           } catch {
-            Alert.alert('No se pudo eliminar', 'Esta rutina fue usada en uno o más entrenamientos guardados.');
+            Alert.alert('No se pudo eliminar', 'Esta rutina fue usada en uno o más entrenamientos guardados, o está vinculada a un evento del calendario.');
           }
         },
       },

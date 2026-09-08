@@ -206,8 +206,12 @@ export default function RecetaFormScreen() {
         text: 'Eliminar',
         style: 'destructive',
         onPress: async () => {
-          await eliminarReceta(Number(id));
-          router.back();
+          try {
+            await eliminarReceta(Number(id));
+            router.back();
+          } catch {
+            Alert.alert('No se pudo eliminar', 'Esta receta está vinculada a un evento del calendario.');
+          }
         },
       },
     ]);

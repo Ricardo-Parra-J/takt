@@ -26,6 +26,7 @@ import {
   listPresets,
   PresetRutina,
 } from '@/db/repositories/deporte';
+import { vincularSesionAEvento } from '@/db/repositories/calendario';
 
 interface SetEditable {
   repeticiones: string;
@@ -41,7 +42,12 @@ interface EjercicioEditable {
 }
 
 export default function SesionFormScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, presetId: presetIdParam, eventoId, fecha: fechaParam } = useLocalSearchParams<{
+    id?: string;
+    presetId?: string;
+    eventoId?: string;
+    fecha?: string;
+  }>();
   const editando = !!id;
   const router = useRouter();
   const theme = useTheme();
@@ -49,7 +55,7 @@ export default function SesionFormScreen() {
   const [nombre, setNombre] = useState('Entrenamiento');
   const [presetId, setPresetId] = useState<number | null>(null);
   const [presets, setPresets] = useState<PresetRutina[]>([]);
-  const [fecha, setFecha] = useState(fechaLocal());
+  const [fecha, setFecha] = useState(fechaParam || fechaLocal());
   const [horaInicio, setHoraInicio] = useState(horaLocal());
   const [duracion, setDuracion] = useState('');
   const [ejercicios, setEjercicios] = useState<EjercicioEditable[]>([]);
@@ -64,6 +70,29 @@ export default function SesionFormScreen() {
   useEffect(() => {
     listPresets().then(setPresets);
   }, []);
+
+  // Si venimos desde un evento de Calendario con una rutina sugerida, la
+  // precargamos automáticamente al crear el entrenamiento.
+  useEffect(() => {
+    if (editando || !presetIdParam) return;
+    getPresetDetalle(Number(presetIdParam)).then((detalle) => {
+      if (!detalle) return;
+      setPresetId(detalle.id);
+      setNombre(detalle.nombre);
+      setEjercicios(
+        detalle.ejercicios.map((e) => ({
+          ejercicio_id: e.ejercicio_id,
+          ejercicio_nombre: e.ejercicio_nombre,
+          placeholderPeso: '',
+          placeholderReps: '',
+          series: Array.from({ length: e.series_objetivo ?? 1 }, () => ({
+            repeticiones: e.repeticiones_objetivo != null ? String(e.repeticiones_objetivo) : '',
+            peso: e.peso_objetivo != null ? String(e.peso_objetivo) : '',
+          })),
+        }))
+      );
+    });
+  }, [editando, presetIdParam]);
 
   useEffect(() => {
     if (!id) return;
@@ -204,8 +233,14 @@ export default function SesionFormScreen() {
 
     if (editando) {
       await actualizarSesionCompleta(Number(id), datos);
+      if (eventoId) {
+        await vincularSesionAEvento(Number(eventoId), Number(id));
+      }
     } else {
-      await crearSesionCompleta(datos);
+      const sesionId = await crearSesionCompleta(datos);
+      if (eventoId) {
+        await vincularSesionAEvento(Number(eventoId), sesionId);
+      }
     }
     router.back();
   }

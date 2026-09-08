@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Link, Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -11,6 +11,10 @@ import { AppButton } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
+import { CatalogoItem, listTiposComida } from '@/db/repositories/catalogos';
+import { listRecetas, RecetaListItem } from '@/db/repositories/recetas';
+import { listPresets, PresetRutina } from '@/db/repositories/deporte';
+import { listTareas, Tarea } from '@/db/repositories/tareas';
 import {
   actualizarEvento,
   crearEvento,
@@ -68,8 +72,37 @@ export default function EventoFormScreen() {
 
   const [cargando, setCargando] = useState(editando);
 
+  // --- Vinculación con comida ---
+  const [tiposComida, setTiposComida] = useState<CatalogoItem[]>([]);
+  const [tipoComidaId, setTipoComidaId] = useState<number | null>(null);
+  const [recetaId, setRecetaId] = useState<number | null>(null);
+  const [recetaNombre, setRecetaNombre] = useState<string | null>(null);
+  const [busquedaReceta, setBusquedaReceta] = useState('');
+  const [resultadosReceta, setResultadosReceta] = useState<RecetaListItem[]>([]);
+  const [buscandoReceta, setBuscandoReceta] = useState(false);
+
+  // --- Vinculación con entrenamiento (Deporte) ---
+  const [presets, setPresets] = useState<PresetRutina[]>([]);
+  const [presetRutinaId, setPresetRutinaId] = useState<number | null>(null);
+  const [sesionEntrenamientoId, setSesionEntrenamientoId] = useState<number | null>(null);
+
+  // --- Vinculación con tareas ---
+  const [tareaId, setTareaId] = useState<number | null>(null);
+  const [tareaTitulo, setTareaTitulo] = useState<string | null>(null);
+  const [busquedaTarea, setBusquedaTarea] = useState('');
+  const [todasTareas, setTodasTareas] = useState<Tarea[]>([]);
+  const [buscandoTarea, setBuscandoTarea] = useState(false);
+
   useEffect(() => {
-    if (!id) return;
+    listTiposComida().then(setTiposComida);
+    listPresets().then(setPresets);
+  }, []);
+
+  useEffect(() => {
+    if (!id) {
+      setCargando(false);
+      return;
+    }
     getEventoDetalle(Number(id)).then((evento) => {
       if (!evento) return;
       setTitulo(evento.titulo);
@@ -87,9 +120,54 @@ export default function EventoFormScreen() {
         setDiasSemana(evento.recurrencia.dias_semana);
         setFechaFin(evento.recurrencia.fecha_fin);
       }
+      setTipoComidaId(evento.tipo_comida_id ?? null);
+      setRecetaId(evento.receta_id ?? null);
+      setRecetaNombre(evento.receta_nombre ?? null);
+      setPresetRutinaId(evento.preset_rutina_id ?? null);
+      setSesionEntrenamientoId(evento.sesion_entrenamiento_id ?? null);
+      setTareaId(evento.tarea_id ?? null);
+      setTareaTitulo(evento.tarea_titulo ?? null);
       setCargando(false);
     });
   }, [id]);
+
+  // Refresca solo el estado de la sesión de entrenamiento vinculada al volver a
+  // esta pantalla (por ejemplo, tras registrar el entrenamiento desde Deporte),
+  // sin pisar el resto de los cambios que el usuario pueda tener sin guardar.
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      getEventoDetalle(Number(id)).then((evento) => {
+        if (!evento) return;
+        setSesionEntrenamientoId(evento.sesion_entrenamiento_id ?? null);
+      });
+    }, [id])
+  );
+
+  useEffect(() => {
+    if (tipo !== 'comida' || busquedaReceta.trim().length === 0) {
+      setResultadosReceta([]);
+      return;
+    }
+    setBuscandoReceta(true);
+    const manija = setTimeout(() => {
+      listRecetas(busquedaReceta).then((res) => {
+        setResultadosReceta(res);
+        setBuscandoReceta(false);
+      });
+    }, 250);
+    return () => clearTimeout(manija);
+  }, [busquedaReceta, tipo]);
+
+  useEffect(() => {
+    if (tipo !== 'entrega' && tipo !== 'certamen') return;
+    if (todasTareas.length > 0) return;
+    setBuscandoTarea(true);
+    listTareas('todas').then((res) => {
+      setTodasTareas(res);
+      setBuscandoTarea(false);
+    });
+  }, [tipo, todasTareas.length]);
 
   function onCambiarFecha(_event: unknown, seleccionada?: Date) {
     setMostrarPickerFecha(false);
@@ -118,6 +196,26 @@ export default function EventoFormScreen() {
   function alternarDiaSemana(dia: number) {
     setDiasSemana((prev) => (prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia].sort()));
   }
+
+  function elegirReceta(r: RecetaListItem) {
+    setRecetaId(r.id);
+    setRecetaNombre(r.nombre);
+    setBusquedaReceta('');
+    setResultadosReceta([]);
+  }
+
+  function elegirTarea(t: Tarea) {
+    setTareaId(t.id);
+    setTareaTitulo(t.titulo);
+    setBusquedaTarea('');
+  }
+
+  const tareasFiltradas =
+    tipo === 'entrega' || tipo === 'certamen'
+      ? todasTareas.filter(
+          (t) => busquedaTarea.trim().length > 0 && t.titulo.toLowerCase().includes(busquedaTarea.trim().toLowerCase())
+        )
+      : [];
 
   async function onGuardar() {
     if (!titulo.trim()) {
@@ -150,6 +248,10 @@ export default function EventoFormScreen() {
             dias_semana: frecuencia === 'semanal' ? diasSemana : [],
           }
         : null,
+      tipo_comida_id: tipo === 'comida' ? tipoComidaId : null,
+      receta_id: tipo === 'comida' ? recetaId : null,
+      preset_rutina_id: tipo === 'gimnasio' ? presetRutinaId : null,
+      tarea_id: tipo === 'entrega' || tipo === 'certamen' ? tareaId : null,
     };
 
     let eventoId = Number(id);
@@ -209,6 +311,180 @@ export default function EventoFormScreen() {
               <Chip key={t.key} label={t.label} selected={tipo === t.key} onPress={() => setTipo(t.key)} />
             ))}
           </View>
+
+          {tipo === 'comida' && (
+            <View style={[styles.seccionVinculo, { borderColor: theme.backgroundSelected }]}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Tipo de comida
+              </ThemedText>
+              <View style={styles.chips}>
+                {tiposComida.map((tc) => (
+                  <Chip
+                    key={tc.id}
+                    label={tc.nombre}
+                    selected={tipoComidaId === tc.id}
+                    onPress={() => setTipoComidaId(tipoComidaId === tc.id ? null : tc.id)}
+                  />
+                ))}
+              </View>
+
+              <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
+                Receta (opcional)
+              </ThemedText>
+              {recetaId ? (
+                <View style={styles.filaHoras}>
+                  <View style={[styles.chipFecha, { backgroundColor: theme.accentSoft }]}>
+                    <ThemedText type="small" style={{ color: theme.accent }}>
+                      {recetaNombre}
+                    </ThemedText>
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      setRecetaId(null);
+                      setRecetaNombre(null);
+                    }}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+              ) : (
+                <>
+                  <TextInput
+                    value={busquedaReceta}
+                    onChangeText={setBusquedaReceta}
+                    placeholder="Buscar receta..."
+                    placeholderTextColor={theme.textSecondary}
+                    style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                  />
+                  {busquedaReceta.trim().length > 0 && !buscandoReceta && (
+                    <View style={styles.listaResultados}>
+                      {resultadosReceta.length === 0 ? (
+                        <ThemedText type="small" themeColor="textSecondary" style={styles.sinResultados}>
+                          Sin resultados.
+                        </ThemedText>
+                      ) : (
+                        resultadosReceta.map((r) => (
+                          <Pressable
+                            key={r.id}
+                            onPress={() => elegirReceta(r)}
+                            style={[styles.itemResultado, { borderColor: theme.backgroundSelected }]}
+                          >
+                            <ThemedText type="small">{r.nombre}</ThemedText>
+                          </Pressable>
+                        ))
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          )}
+
+          {tipo === 'gimnasio' && (
+            <View style={[styles.seccionVinculo, { borderColor: theme.backgroundSelected }]}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Rutina (opcional)
+              </ThemedText>
+              <View style={styles.chips}>
+                {presets.length === 0 ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    No tienes rutinas guardadas todavía.
+                  </ThemedText>
+                ) : (
+                  presets.map((p) => (
+                    <Chip
+                      key={p.id}
+                      label={p.nombre}
+                      selected={presetRutinaId === p.id}
+                      onPress={() => setPresetRutinaId(presetRutinaId === p.id ? null : p.id)}
+                    />
+                  ))
+                )}
+              </View>
+
+              {editando && (
+                <View style={styles.seccion}>
+                  {sesionEntrenamientoId ? (
+                    <View style={[styles.chipFecha, { backgroundColor: theme.accentSoft, alignSelf: 'flex-start' }]}>
+                      <ThemedText type="small" style={{ color: theme.accent }}>
+                        ✓ Entrenamiento registrado
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <Link
+                      href={{
+                        pathname: '/deporte/sesion-form',
+                        params: {
+                          eventoId: id,
+                          fecha,
+                          ...(presetRutinaId ? { presetId: String(presetRutinaId) } : {}),
+                        },
+                      }}
+                      asChild
+                    >
+                      <AppButton label="Registrar este entrenamiento" variante="secundario" />
+                    </Link>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
+          {(tipo === 'entrega' || tipo === 'certamen') && (
+            <View style={[styles.seccionVinculo, { borderColor: theme.backgroundSelected }]}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Tarea vinculada (opcional)
+              </ThemedText>
+              {tareaId ? (
+                <View style={styles.filaHoras}>
+                  <View style={[styles.chipFecha, { backgroundColor: theme.accentSoft }]}>
+                    <ThemedText type="small" style={{ color: theme.accent }}>
+                      {tareaTitulo}
+                    </ThemedText>
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      setTareaId(null);
+                      setTareaTitulo(null);
+                    }}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+              ) : (
+                <>
+                  <TextInput
+                    value={busquedaTarea}
+                    onChangeText={setBusquedaTarea}
+                    placeholder="Buscar tarea..."
+                    placeholderTextColor={theme.textSecondary}
+                    style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                  />
+                  {busquedaTarea.trim().length > 0 && !buscandoTarea && (
+                    <View style={styles.listaResultados}>
+                      {tareasFiltradas.length === 0 ? (
+                        <ThemedText type="small" themeColor="textSecondary" style={styles.sinResultados}>
+                          Sin resultados.
+                        </ThemedText>
+                      ) : (
+                        tareasFiltradas.map((t) => (
+                          <Pressable
+                            key={t.id}
+                            onPress={() => elegirTarea(t)}
+                            style={[styles.itemResultado, { borderColor: theme.backgroundSelected }]}
+                          >
+                            <ThemedText type="small">{t.titulo}</ThemedText>
+                          </Pressable>
+                        ))
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          )}
 
           <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
             Fecha
@@ -428,10 +704,22 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   seccion: { marginTop: Spacing.three },
+  seccionVinculo: {
+    marginTop: Spacing.three,
+    paddingTop: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.two,
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    gap: Spacing.one,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
   chipFecha: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, borderRadius: Spacing.two },
   filaHoras: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.three },
   botonGuardar: { marginTop: Spacing.four },
   botonEliminar: { marginTop: Spacing.three },
+  listaResultados: { gap: Spacing.one },
+  itemResultado: { borderWidth: 1, borderRadius: Spacing.two, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
+  sinResultados: { paddingVertical: Spacing.one },
 });

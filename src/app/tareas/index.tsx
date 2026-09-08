@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -64,9 +64,22 @@ export default function TareasScreen() {
     recargar(filtro);
   }
 
-  async function onEliminar(tarea: Tarea) {
-    await eliminarTarea(tarea.id);
-    recargar(filtro);
+  function onEliminar(tarea: Tarea) {
+    Alert.alert('Eliminar tarea', `¿Eliminar "${tarea.titulo}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await eliminarTarea(tarea.id);
+            recargar(filtro);
+          } catch {
+            Alert.alert('No se pudo eliminar', 'Esta tarea está vinculada a un evento del calendario.');
+          }
+        },
+      },
+    ]);
   }
 
   return (

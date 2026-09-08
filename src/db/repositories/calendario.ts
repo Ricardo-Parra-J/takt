@@ -20,6 +20,15 @@ export interface EventoCalendario {
   todo_el_dia: number; // 0 | 1
   notas: string | null;
   recurrencia_id: number | null;
+  tipo_comida_id: number | null; // solo si tipo === 'comida'
+  tipo_comida_nombre: string | null;
+  receta_id: number | null; // receta asignada al bloque de comida
+  receta_nombre: string | null;
+  preset_rutina_id: number | null; // rutina planificada si tipo === 'gimnasio'
+  preset_rutina_nombre: string | null;
+  sesion_entrenamiento_id: number | null; // sesion real ya registrada para este evento
+  tarea_id: number | null; // si viene de una entrega/certamen
+  tarea_titulo: string | null;
   completado: number; // 0 | 1 -- solo tiene sentido para eventos no recurrentes
   creado_en: string;
 }
@@ -42,6 +51,10 @@ export interface DatosEvento {
   hora_fin: string | null;
   notas: string;
   recurrencia: RecurrenciaInfo | null;
+  tipo_comida_id: number | null;
+  receta_id: number | null;
+  preset_rutina_id: number | null;
+  tarea_id: number | null;
 }
 
 const TIPOS_EVENTO: { key: TipoEvento; label: string; icono: string }[] = [
@@ -240,8 +253,9 @@ export async function crearEvento(datos: DatosEvento): Promise<number> {
   await db.withTransactionAsync(async () => {
     const recurrenciaId = await guardarRecurrencia(db, null, datos.recurrencia);
     const result = await db.runAsync(
-      `INSERT INTO eventos_calendario (titulo, tipo, fecha, hora_inicio, hora_fin, todo_el_dia, notas, recurrencia_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO eventos_calendario
+         (titulo, tipo, fecha, hora_inicio, hora_fin, todo_el_dia, notas, recurrencia_id, tipo_comida_id, receta_id, preset_rutina_id, tarea_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       datos.titulo.trim(),
       datos.tipo,
       datos.fecha,
@@ -249,7 +263,11 @@ export async function crearEvento(datos: DatosEvento): Promise<number> {
       datos.todo_el_dia ? null : datos.hora_fin,
       datos.todo_el_dia ? 1 : 0,
       datos.notas.trim() || null,
-      recurrenciaId
+      recurrenciaId,
+      datos.tipo_comida_id,
+      datos.receta_id,
+      datos.preset_rutina_id,
+      datos.tarea_id
     );
     nuevoId = result.lastInsertRowId;
   });
@@ -265,7 +283,9 @@ export async function actualizarEvento(id: number, datos: DatosEvento): Promise<
     );
     const recurrenciaId = await guardarRecurrencia(db, actual?.recurrencia_id ?? null, datos.recurrencia);
     await db.runAsync(
-      `UPDATE eventos_calendario SET titulo = ?, tipo = ?, fecha = ?, hora_inicio = ?, hora_fin = ?, todo_el_dia = ?, notas = ?, recurrencia_id = ?
+      `UPDATE eventos_calendario SET
+         titulo = ?, tipo = ?, fecha = ?, hora_inicio = ?, hora_fin = ?, todo_el_dia = ?, notas = ?, recurrencia_id = ?,
+         tipo_comida_id = ?, receta_id = ?, preset_rutina_id = ?, tarea_id = ?
        WHERE id = ?`,
       datos.titulo.trim(),
       datos.tipo,
@@ -275,6 +295,10 @@ export async function actualizarEvento(id: number, datos: DatosEvento): Promise<
       datos.todo_el_dia ? 1 : 0,
       datos.notas.trim() || null,
       recurrenciaId,
+      datos.tipo_comida_id,
+      datos.receta_id,
+      datos.preset_rutina_id,
+      datos.tarea_id,
       id
     );
   });
@@ -285,6 +309,24 @@ export async function marcarCompletado(id: number, completado: boolean): Promise
   await db.runAsync('UPDATE eventos_calendario SET completado = ? WHERE id = ?', completado ? 1 : 0, id);
 }
 
+/**
+ * Vincula una sesion de entrenamiento ya guardada con el evento de
+ * calendario que la origino (ambos lados de la relacion: el evento sabe
+ * que sesion lo cumplio, y la sesion sabe de que evento vino), y marca el
+ * evento como completado.
+ */
+export async function vincularSesionAEvento(eventoId: number, sesionId: number): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      'UPDATE eventos_calendario SET sesion_entrenamiento_id = ?, completado = 1 WHERE id = ?',
+      sesionId,
+      eventoId
+    );
+    await db.runAsync('UPDATE sesiones_entrenamiento SET evento_calendario_id = ? WHERE id = ?', eventoId, sesionId);
+  });
+}
+
 export async function eliminarEvento(id: number): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
@@ -292,6 +334,8 @@ export async function eliminarEvento(id: number): Promise<void> {
       'SELECT recurrencia_id FROM eventos_calendario WHERE id = ?',
       id
     );
+    // Ninguna sesion de entrenamiento puede quedar apuntando a un evento borrado.
+    await db.runAsync('UPDATE sesiones_entrenamiento SET evento_calendario_id = NULL WHERE evento_calendario_id = ?', id);
     await db.runAsync('DELETE FROM eventos_calendario WHERE id = ?', id);
     if (actual?.recurrencia_id) {
       await db.runAsync('DELETE FROM recurrencias WHERE id = ?', actual.recurrencia_id);
@@ -299,15 +343,22 @@ export async function eliminarEvento(id: number): Promise<void> {
   });
 }
 
-const COLUMNAS_EVENTO =
-  'id, titulo, tipo, fecha, hora_inicio, hora_fin, todo_el_dia, notas, recurrencia_id, completado, creado_en';
+const SELECT_EVENTOS = `
+  SELECT e.*,
+    tc.nombre AS tipo_comida_nombre,
+    r.nombre AS receta_nombre,
+    pr.nombre AS preset_rutina_nombre,
+    t.titulo AS tarea_titulo
+  FROM eventos_calendario e
+  LEFT JOIN tipos_comida tc ON tc.id = e.tipo_comida_id
+  LEFT JOIN recetas r ON r.id = e.receta_id
+  LEFT JOIN presets_rutina pr ON pr.id = e.preset_rutina_id
+  LEFT JOIN tareas t ON t.id = e.tarea_id
+`;
 
 export async function getEventoDetalle(id: number): Promise<EventoDetalle | null> {
   const db = await getDb();
-  const evento = await db.getFirstAsync<EventoCalendario>(
-    `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE id = ?`,
-    id
-  );
+  const evento = await db.getFirstAsync<EventoCalendario>(`${SELECT_EVENTOS} WHERE e.id = ?`, id);
   if (!evento) return null;
 
   let recurrencia: RecurrenciaInfo | null = null;
@@ -345,7 +396,7 @@ export async function listEventosRango(fechaInicio: string, fechaFin: string): P
   const resultado: Record<string, EventoDelDia[]> = {};
 
   const eventosDelRango = await db.getAllAsync<EventoCalendario>(
-    `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE recurrencia_id IS NULL AND fecha BETWEEN ? AND ?`,
+    `${SELECT_EVENTOS} WHERE e.recurrencia_id IS NULL AND e.fecha BETWEEN ? AND ?`,
     fechaInicio,
     fechaFin
   );
@@ -354,7 +405,7 @@ export async function listEventosRango(fechaInicio: string, fechaFin: string): P
   }
 
   const eventosRecurrentes = await db.getAllAsync<EventoCalendario>(
-    `SELECT ${COLUMNAS_EVENTO} FROM eventos_calendario WHERE recurrencia_id IS NOT NULL`
+    `${SELECT_EVENTOS} WHERE e.recurrencia_id IS NOT NULL`
   );
   const recurrenciasPorId = new Map<number, RecurrenciaInfo>();
   for (const evento of eventosRecurrentes) {

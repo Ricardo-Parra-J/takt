@@ -349,6 +349,10 @@ export async function getSesionDetalle(id: number): Promise<SesionDetalle | null
 
 export async function eliminarSesion(id: number): Promise<void> {
   const db = await getDb();
+  await db.runAsync(
+    'UPDATE eventos_calendario SET sesion_entrenamiento_id = NULL WHERE sesion_entrenamiento_id = ?',
+    id
+  );
   await db.runAsync('DELETE FROM sesiones_entrenamiento WHERE id = ?', id);
 }
 
