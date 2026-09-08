@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -7,19 +8,17 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 
-export default function ComidaScreen() {
+export default function RecetasScreen() {
   const theme = useTheme();
   return (
     <ThemedView style={styles.container}>
+      <Stack.Screen options={{ title: 'Recetas' }} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <ThemedText type="title" style={styles.title}>
-          Comida
-        </ThemedText>
         <ThemedView style={styles.centro}>
-          <Ionicons name="restaurant-outline" size={48} color={theme.textSecondary} />
+          <Ionicons name="book-outline" size={48} color={theme.textSecondary} />
           <ThemedText themeColor="textSecondary" style={styles.texto}>
-            Este módulo todavía no está construido. La base de datos ya tiene las tablas
-            listas para él (ver DATABASE.md) — falta armar sus pantallas.
+            Todavía no está construido. Primero conviene tener Ingredientes y Productos
+            cargados, ya que las recetas se arman a partir de ellos.
           </ThemedText>
         </ThemedView>
       </SafeAreaView>
@@ -29,8 +28,7 @@ export default function ComidaScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  safeArea: { flex: 1, paddingHorizontal: Spacing.four, gap: Spacing.three },
-  title: { fontSize: 28, lineHeight: 34 },
+  safeArea: { flex: 1, paddingHorizontal: Spacing.four },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.three, paddingHorizontal: Spacing.four },
   texto: { textAlign: 'center', lineHeight: 20 },
 });
