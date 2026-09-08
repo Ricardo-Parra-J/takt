@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v13)
+# Takt — Especificación funcional (borrador v14)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -46,7 +46,7 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 - **Etiquetas dietéticas — confirmado.** No se agregan como un perfil de restricciones personales, sino como categorías/etiquetas adicionales de la Receta (vegetariano, sin gluten, vegano, etc.), multi-seleccionables igual que las de tipo de comida, para poder filtrar recetas al buscarlas.
 - **Recetas favoritas — confirmado, NUEVO.** Marcar recetas como favoritas para acceso rápido.
 
-**Registro diario de comidas — confirmado, NUEVO.**
+**Registro diario de comidas — confirmado, NUEVO.** Al completar un bloque de comida en el Calendario que tiene una receta asignada, esa comida se registra automáticamente en el diario alimentario del día (no hay que anotarla dos veces).
 - Se lleva un registro de lo efectivamente comido cada día (no solo marcar el bloque del calendario como hecho).
 - El usuario define **metas nutricionales diarias**: rangos objetivo de calorías, proteínas, carbohidratos (y otros macros que se quieran trackear).
 - Cada día queda guardado si se cumplió o no cada meta (calorías, proteínas, carbohidratos, etc.), formando un historial de cumplimiento nutricional día a día.
@@ -88,6 +88,7 @@ Solo dos estados guardados, más una vista calculada:
 **Confirmado, NUEVO:**
 - Prioridad de tarea (alta/media/baja).
 - Subtareas/checklist dentro de una tarea, para tareas grandes que se dividen en pasos.
+- Recordatorio con anticipación configurable para tareas/evaluaciones importantes (ej. avisar 3 días antes, no solo el mismo día).
 
 ## 4. Finanzas
 
@@ -102,7 +103,8 @@ Solo dos estados guardados, más una vista calculada:
 - **Seguimiento del % de ahorro — confirmado, NUEVO.** No solo definir el % objetivo, sino ver mes a mes si realmente se está cumpliendo.
 - **Dinero disponible para gastar / de ocio — confirmado, NUEVO (idea tuya).** La app muestra cuánto puedes gastar libremente este mes, aparte de lo que va a ahorro: Ingreso total (sueldo + ganancias) − monto de ahorro objetivo − gastos obligatorios del mes = disponible para gastar. Este número baja en tiempo real cada vez que registras un gasto puntual, y se resetea cuando entra el sueldo del mes siguiente.
 
-**Duda nueva:** ¿te sirve un solo número de "disponible" (ya descontando ahorro Y gastos obligatorios), o prefieres ver dos por separado — "disponible después de ahorro" y "disponible libre después de gastos obligatorios también"?
+Se deja como un solo número (ya descontando ahorro y gastos obligatorios juntos) por simplicidad — fácil de cambiar a mostrar los dos por separado más adelante si en el uso diario se echa de menos el detalle.
+- **Metas de ahorro con nombre y propósito — confirmado, Fase 2.** Además del % de ahorro general del mes, fondos de ahorro específicos (ej. "viaje: meta $500.000, llevas $120.000"). Se agrega más adelante sin romper lo ya definido.
 
 ## 5. Deporte / Entrenamiento
 
@@ -134,6 +136,7 @@ No encajan de lleno en ninguno de los 5 módulos, así que viven como registros 
 - **Bloqueo de la app (PIN / huella / Face ID) — confirmado, NUEVO.** Importante al guardar datos financieros y de salud sensibles en un dispositivo local.
 - **Recordatorio periódico de respaldo — confirmado, NUEVO.** Como el respaldo depende de exportar manualmente (no hay nube), la app avisa si ha pasado mucho tiempo sin un respaldo.
 - **Resumen diario automático — confirmado, NUEVO.** Recuento generado por la app (no un diario manual) de lo comido, entrenado, completado y gastado en el día.
+- **Vista "Hoy" unificada en el Dashboard — confirmado, NUEVO.** Junta en un solo lugar lo de todos los módulos: próximo bloque del calendario, comidas planeadas del día, tareas que vencen hoy, y el disponible para gastar — sin tener que entrar a cada módulo por separado.
 
 ## Descartado
 
