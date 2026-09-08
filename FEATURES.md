@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v8)
+# Takt — Especificación funcional (borrador v9)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -35,17 +35,25 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 
 - **Ingrediente**: alimento genérico (huevo, lechuga, zanahoria) con valores nutricionales, normalmente por 100g/100ml.
 - **Producto**: item de marca específica comprado (ej. jugo de una marca), con campo de **marca** (para poder buscarlo por marca después) y sus propios valores nutricionales.
-- Las Recetas se arman seleccionando **ingredientes y/o productos** guardados — confirmado que ambos pueden ser componentes de una receta — con unidad de medida y cantidad para cada uno.
+- Las Recetas se arman seleccionando **ingredientes y/o productos** guardados, con unidad de medida y cantidad para cada uno.
 - El valor nutricional de una receta se calcula automáticamente en base a los valores nutricionales y cantidades de sus componentes.
+- **Porciones — confirmado.** Cada Receta tiene rendimiento/porciones (ej. "rinde 4 porciones"), para poder ver el valor nutricional total o por porción.
 - **Info nutricional incompleta**: si un Ingrediente o Producto queda guardado sin todos sus valores nutricionales completos (por ejemplo, uno creado al vuelo durante una importación), debe quedar marcado visualmente como "info incompleta" para poder encontrarlo y completarlo/editarlo después fácilmente.
-- Registro de calorías y macronutrientes — confirmado.
 - Registro de consumo de agua durante el día — confirmado.
 - Las Recetas tienen categorías multi-seleccionables (desayuno, cena, snack, etc.), que conectan con el Calendario: un bloque "desayuno" muestra directamente las recetas de esa categoría.
+- **Etiquetas dietéticas — confirmado.** No se agregan como un perfil de restricciones personales, sino como categorías/etiquetas adicionales de la Receta (vegetariano, sin gluten, vegano, etc.), multi-seleccionables igual que las de tipo de comida, para poder filtrar recetas al buscarlas.
+
+**Registro diario de comidas — confirmado, NUEVO.**
+- Se lleva un registro de lo efectivamente comido cada día (no solo marcar el bloque del calendario como hecho).
+- El usuario define **metas nutricionales diarias**: rangos objetivo de calorías, proteínas, carbohidratos (y otros macros que se quieran trackear).
+- Cada día queda guardado si se cumplió o no cada meta (calorías, proteínas, carbohidratos, etc.), formando un historial de cumplimiento nutricional día a día.
+
+**Planificador semanal de comidas — confirmado, NUEVO.**
+- Se pueden asignar recetas a los días/bloques de comida de la semana.
+- A partir de ese plan semanal, se arma automáticamente la lista de compras.
 
 **Dudas pendientes:**
-- ¿Las Recetas tienen porciones/rendimiento (ej. "rinde 4 porciones") para saber si el valor nutricional calculado es total o por porción?
-- ¿Quieres un registro diario de lo que efectivamente comiste, aparte de completar el bloque del calendario?
-- ¿Restricciones o preferencias alimentarias (vegetariano, sin gluten, alergias) para filtrar recetas — la agregamos?
+- La lista de compras automática, ¿resta lo que ya tienes en casa (inventario/despensa) o simplemente junta todos los ingredientes de las recetas planificadas de la semana, sin llevar inventario?
 
 ## 2. Calendario
 
@@ -54,12 +62,10 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 - Sincronización con Google Calendar — confirmado, Fase 2 (requiere integración con API externa).
 - Reacomodo automático de bloques si una actividad se atrasa — confirmado, Fase 2 (función avanzada).
 - Plantillas de horario reutilizables (ej. semana tipo con clases y gimnasio fijos) — confirmado, Fase 1.
-
-**Dudas pendientes:**
-- Recurrencia de eventos (clases semanales) — ¿se configura una vez y se repite sola?
-- ¿En un bloque de gimnasio se puede planificar de antemano qué rutina se hará?
-- ¿Seleccionar una receta desde el calendario arma automáticamente la lista de compras semanal?
-- Vista de calendario por día / semana / mes — ¿las tres, o alguna en particular?
+- **Recurrencia — confirmado.** Un evento recurrente se ingresa una sola vez y se repite automáticamente hasta que se elimine.
+- **Vistas de calendario — confirmado.** Día, semana y mes, las tres.
+- **Bloque de gimnasio — confirmado.** Se puede planificar de antemano qué rutina (preset) se va a hacer, asignándola al bloque. Ver sección Deporte para el detalle de presets vs. sesión real ejecutada.
+- **Bloque de comida — confirmado.** Conectado al planificador semanal de Comida: seleccionar recetas para la semana arma automáticamente la lista de compras.
 
 ## 3. Tareas
 
@@ -82,25 +88,20 @@ Solo dos estados guardados, más una vista calculada:
 
 - Sueldo mensual, que se renueva/aumenta el saldo disponible cada mes.
 - % de ahorro objetivo.
-- Gastos obligatorios estimados mensuales (suscripciones, cuentas, etc.).
-- Registro de gastos puntuales con fecha y hora, generando historial de gastos.
-- **Ganancias / Ingresos extra — confirmado.** Además del sueldo fijo, registrar ingresos puntuales no recurrentes: venta de algo, un trabajo extra remunerado, etc. Igual que los gastos puntuales: monto, fecha y hora, descripción, con su propio historial. Estas ganancias se suman al saldo disponible del mes (sueldo + ganancias − gastos obligatorios − gastos puntuales).
-
-**Dudas pendientes:**
-- ¿Los gastos obligatorios se configuran una vez como plantilla recurrente que se descuenta solo cada mes?
-- ¿Los gastos (y ahora también las ganancias) deben tener categoría (ej. gastos: comida, transporte, entretenimiento — ganancias: venta, trabajo extra, regalo)?
-- Moneda: ¿pesos chilenos (CLP)?
+- Registro de gastos puntuales y de **Ganancias / Ingresos extra** (venta de algo, trabajo extra remunerado, etc.), ambos sumando/restando del saldo disponible del mes (sueldo + ganancias − gastos obligatorios − gastos puntuales).
+- **Campos de Gasto/Ganancia — confirmado:** título (obligatorio), descripción (opcional), monto, fecha y hora, categoría.
+- **Categorías — confirmado.** Tanto gastos como ganancias tienen categoría (ej. gastos: comida, transporte, entretenimiento — ganancias: venta, trabajo extra, regalo).
+- **Gastos obligatorios — confirmado.** Se configuran una sola vez como gasto recurrente (ej. "Netflix, se cobra el día 5 de cada mes"), y la app genera/descuenta automáticamente el gasto en la fecha de cobro correspondiente cada mes.
+- **Moneda — confirmado.** CLP (pesos chilenos) por defecto.
 
 ## 5. Deporte / Entrenamiento
 
-- Rutinas con nombre propio, que quedan guardadas en el calendario cuando se realizan.
-- Por sesión se guarda: ejercicios, **series, repeticiones y peso** por ejercicio, y duración total del entrenamiento.
-- Los ejercicios son entidades reutilizables entre rutinas, y recuerdan la última serie/repeticiones/peso usado.
-- Todo queda como historial.
+**Se confirmaron dos entidades separadas — plan y registro real:**
 
-**Dudas pendientes:**
-- ¿Una Rutina es una plantilla planificada que después ejecutas y comparas contra lo real, o el registro ES directamente lo que hiciste ese día?
-- ¿Los ejercicios se agrupan por grupo muscular (pecho, espalda, piernas, cardio)?
+- **Preset de rutina** (plantilla planificada): tiene nombre propio y una lista de ejercicios planeados con series/repeticiones/peso objetivo. Reutilizable, se puede asignar de antemano a un bloque de gimnasio en el Calendario.
+- **Sesión de entrenamiento** (registro real ejecutado): puede partir de un preset o ser libre. Guarda lo que realmente se hizo: ejercicios, series, repeticiones y peso por ejercicio, y duración total — incluyendo cualquier cambio respecto al preset (ejercicios distintos, más/menos series, otro peso). Queda en el historial y vinculada al Calendario.
+- Los ejercicios son entidades reutilizables entre presets y sesiones, y recuerdan la última serie/repeticiones/peso usado para llevar continuidad del progreso.
+- **Agrupación por grupo muscular — confirmado.** Los ejercicios se agrupan por grupo muscular (pecho, espalda, piernas, cardio, etc.).
 
 ## Sueño
 
