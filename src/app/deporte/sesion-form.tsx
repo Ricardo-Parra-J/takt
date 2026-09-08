@@ -205,22 +205,21 @@ export default function SesionFormScreen() {
       Alert.alert('Falta el nombre', 'Ponle un nombre al entrenamiento.');
       return;
     }
-    const ejerciciosLimpios = ejercicios
-      .map((e) => ({
-        ejercicio_id: e.ejercicio_id,
-        series: e.series
-          .map((s) => ({
-            repeticiones: s.repeticiones.trim() ? Number(s.repeticiones) : null,
-            peso: s.peso.trim() ? Number(s.peso.replace(',', '.')) : null,
-          }))
-          .filter((s) => s.repeticiones != null || s.peso != null),
-      }))
-      .filter((e) => e.series.length > 0);
-
-    if (ejerciciosLimpios.length === 0) {
-      Alert.alert('Faltan ejercicios', 'Agrega al menos un ejercicio con alguna serie registrada.');
+    if (ejercicios.length === 0) {
+      Alert.alert('Faltan ejercicios', 'Agrega al menos un ejercicio a este entrenamiento.');
       return;
     }
+
+    // Se guardan todas las series tal cual quedaron: si el usuario no anotó
+    // peso/repeticiones (por ejemplo, un entrenamiento traído de una rutina
+    // sin objetivos definidos), quedan en null y se pueden completar después.
+    const ejerciciosLimpios = ejercicios.map((e) => ({
+      ejercicio_id: e.ejercicio_id,
+      series: e.series.map((s) => ({
+        repeticiones: s.repeticiones.trim() ? Number(s.repeticiones) : null,
+        peso: s.peso.trim() ? Number(s.peso.replace(',', '.')) : null,
+      })),
+    }));
 
     const datos: DatosSesion = {
       nombre,
@@ -231,18 +230,23 @@ export default function SesionFormScreen() {
       ejercicios: ejerciciosLimpios,
     };
 
-    if (editando) {
-      await actualizarSesionCompleta(Number(id), datos);
-      if (eventoId) {
-        await vincularSesionAEvento(Number(eventoId), Number(id));
+    try {
+      if (editando) {
+        await actualizarSesionCompleta(Number(id), datos);
+        if (eventoId) {
+          await vincularSesionAEvento(Number(eventoId), Number(id));
+        }
+      } else {
+        const sesionId = await crearSesionCompleta(datos);
+        if (eventoId) {
+          await vincularSesionAEvento(Number(eventoId), sesionId);
+        }
       }
-    } else {
-      const sesionId = await crearSesionCompleta(datos);
-      if (eventoId) {
-        await vincularSesionAEvento(Number(eventoId), sesionId);
-      }
+      router.back();
+    } catch (error) {
+      console.error('Error al guardar el entrenamiento', error);
+      Alert.alert('No se pudo guardar', 'Ocurrió un error al guardar el entrenamiento. Intenta de nuevo.');
     }
-    router.back();
   }
 
   function onEliminar() {
