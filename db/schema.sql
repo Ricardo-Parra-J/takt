@@ -10,6 +10,38 @@
 PRAGMA foreign_keys = ON;
 
 -- ============================================================
+-- UNIDADES DE MEDIDA (catálogo fijo, seleccionable — NUEVO)
+-- ============================================================
+-- 'dimension' agrupa unidades que se convierten entre sí de forma universal
+-- (masa <-> masa, volumen <-> volumen, vía factor_a_base). 'conteo' (unidad,
+-- rebanada, diente, etc.) no tiene conversión universal: depende del
+-- ingrediente/producto específico (ver tablas de equivalencias más abajo).
+-- La conversión masa <-> volumen TAMPOCO es universal (depende de la densidad
+-- de cada ingrediente), así que también pasa por esas tablas de equivalencias.
+
+CREATE TABLE unidades_medida (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL UNIQUE,       -- 'g', 'kg', 'ml', 'l', 'taza', 'cucharada', 'unidad', etc.
+  dimension TEXT NOT NULL,            -- 'masa' | 'volumen' | 'conteo'
+  factor_a_base REAL                  -- multiplicar por esto da la unidad base de su dimension (g para masa, ml para volumen); NULL en 'conteo'
+);
+
+INSERT INTO unidades_medida (nombre, dimension, factor_a_base) VALUES
+  ('g',           'masa',    1),
+  ('kg',          'masa',    1000),
+  ('mg',          'masa',    0.001),
+  ('ml',          'volumen', 1),
+  ('l',           'volumen', 1000),
+  ('taza',        'volumen', 240),
+  ('cucharada',   'volumen', 15),
+  ('cucharadita', 'volumen', 5),
+  ('unidad',      'conteo',  NULL),
+  ('rebanada',    'conteo',  NULL),
+  ('diente',      'conteo',  NULL),
+  ('pizca',       'conteo',  NULL);
+
+
+-- ============================================================
 -- MÓDULO 1: COMIDA
 -- ============================================================
 
@@ -17,7 +49,7 @@ CREATE TABLE ingredientes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL,
   porcion_base_cantidad REAL NOT NULL DEFAULT 100,
-  porcion_base_unidad TEXT NOT NULL DEFAULT 'g',
+  porcion_base_unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id), -- unidad en la que están dados los valores nutricionales de abajo
   calorias REAL,
   proteinas_g REAL,
   carbohidratos_g REAL,
@@ -31,6 +63,18 @@ CREATE TABLE ingredientes (
 );
 CREATE INDEX idx_ingredientes_nombre ON ingredientes(nombre);
 
+-- Cuánto equivale 1 [unidad] de ESTE ingrediente, en la unidad base del propio
+-- ingrediente (porcion_base_unidad_id). Ej: harina + 'taza' -> 120 (si la base es 'g').
+-- Solo hace falta una fila cuando se quiere usar en recetas una unidad que no es
+-- directamente convertible de forma universal a la unidad base (ver dimension arriba).
+CREATE TABLE ingrediente_equivalencias_unidad (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ingrediente_id INTEGER NOT NULL REFERENCES ingredientes(id) ON DELETE CASCADE,
+  unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id),
+  equivale_a_cantidad REAL NOT NULL, -- cantidad, en la unidad base del ingrediente, que equivale a 1 [unidad_id]
+  UNIQUE(ingrediente_id, unidad_id)
+);
+
 CREATE TABLE marcas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
@@ -41,7 +85,7 @@ CREATE TABLE productos (
   nombre TEXT NOT NULL,
   marca_id INTEGER REFERENCES marcas(id),
   porcion_base_cantidad REAL NOT NULL DEFAULT 100,
-  porcion_base_unidad TEXT NOT NULL DEFAULT 'g',
+  porcion_base_unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id),
   calorias REAL,
   proteinas_g REAL,
   carbohidratos_g REAL,
@@ -55,6 +99,15 @@ CREATE TABLE productos (
 );
 CREATE INDEX idx_productos_nombre ON productos(nombre);
 CREATE INDEX idx_productos_marca ON productos(marca_id);
+
+-- Igual que ingrediente_equivalencias_unidad, pero para Productos.
+CREATE TABLE producto_equivalencias_unidad (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+  unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id),
+  equivale_a_cantidad REAL NOT NULL,
+  UNIQUE(producto_id, unidad_id)
+);
 
 CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc.
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +147,7 @@ CREATE TABLE receta_ingredientes (
   receta_id INTEGER NOT NULL REFERENCES recetas(id) ON DELETE CASCADE,
   ingrediente_id INTEGER NOT NULL REFERENCES ingredientes(id) ON DELETE RESTRICT,
   cantidad REAL NOT NULL,
-  unidad TEXT NOT NULL
+  unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id)
 );
 CREATE INDEX idx_receta_ingredientes_receta ON receta_ingredientes(receta_id);
 
@@ -103,7 +156,7 @@ CREATE TABLE receta_productos (
   receta_id INTEGER NOT NULL REFERENCES recetas(id) ON DELETE CASCADE,
   producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE RESTRICT,
   cantidad REAL NOT NULL,
-  unidad TEXT NOT NULL
+  unidad_id INTEGER NOT NULL REFERENCES unidades_medida(id)
 );
 CREATE INDEX idx_receta_productos_receta ON receta_productos(receta_id);
 
@@ -117,7 +170,7 @@ CREATE TABLE registro_comidas (
   ingrediente_id INTEGER REFERENCES ingredientes(id) ON DELETE SET NULL,
   producto_id INTEGER REFERENCES productos(id) ON DELETE SET NULL,
   cantidad REAL NOT NULL DEFAULT 1, -- porciones si es receta; cantidad si es ingrediente/producto suelto
-  unidad TEXT,
+  unidad_id INTEGER REFERENCES unidades_medida(id),
   origen TEXT NOT NULL DEFAULT 'manual', -- 'manual' | 'bloque_calendario'
   evento_calendario_id INTEGER REFERENCES eventos_calendario(id) ON DELETE SET NULL,
   creado_en TEXT NOT NULL DEFAULT (datetime('now')),
@@ -175,7 +228,7 @@ CREATE TABLE lista_compra_items (
   ingrediente_id INTEGER REFERENCES ingredientes(id),
   producto_id INTEGER REFERENCES productos(id),
   cantidad REAL NOT NULL,
-  unidad TEXT,
+  unidad_id INTEGER REFERENCES unidades_medida(id),
   conseguido INTEGER NOT NULL DEFAULT 0, -- marcado por el usuario al revisar la lista
   eliminado INTEGER NOT NULL DEFAULT 0,  -- quitado por el usuario porque ya lo tenía
   CHECK ((ingrediente_id IS NOT NULL) <> (producto_id IS NOT NULL))

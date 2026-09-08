@@ -1,10 +1,17 @@
 # Takt — Modelo de base de datos (SQLite)
 
-Basado en `FEATURES.md` (borrador v15). El esquema completo en SQL está en `db/schema.sql` (41 tablas, ya probado: se ejecuta sin errores y las reglas de integridad funcionan como se espera).
+Basado en `FEATURES.md` (borrador v15). El esquema completo en SQL está en `db/schema.sql` (44 tablas, ya probado: se ejecuta sin errores, las reglas de integridad funcionan, y el cálculo nutricional de una receta con conversión de unidades se probó de punta a punta con datos reales).
 
 ## Cómo leer esto
 
 Por cada módulo, las tablas principales y para qué sirven. El detalle de columnas está en `db/schema.sql` (con comentarios).
+
+## 0. Unidades de medida — NUEVO
+
+- `unidades_medida` — catálogo fijo y seleccionable (g, kg, ml, l, taza, cucharada, cucharadita, unidad, rebanada, diente, pizca), cada una con una `dimension` (masa / volumen / conteo). Dentro de la misma dimensión, la conversión es universal (ej. 1 taza siempre son 240 ml, 1 kg siempre son 1000 g) vía `factor_a_base`.
+- Lo que **no** es universal es convertir entre masa y volumen (depende de la densidad de cada ingrediente — 1 taza de harina no pesa lo mismo que 1 taza de agua), ni las unidades de "conteo" (1 huevo, 1 diente de ajo). Para esos casos existen `ingrediente_equivalencias_unidad` y `producto_equivalencias_unidad`: por ejemplo, "harina: 1 taza = 120 g" queda guardado ahí, específico para ese ingrediente.
+- Cada Ingrediente/Producto guarda sus valores nutricionales relativos a su propia `porcion_base_cantidad` + `porcion_base_unidad_id` (ej. "por 100 g" para harina, o "por 1 unidad" directamente para huevo) — se elige la unidad que tenga más sentido para ese ingrediente en particular, no siempre 100 g.
+- **Cómo se calcula la nutrición de una receta:** por cada ingrediente/producto de la receta, se convierte su cantidad a la unidad base de ese ingrediente (usando conversión universal si es la misma dimensión, o la equivalencia propia del ingrediente si no), se calcula la proporción respecto a su porción base, y se multiplica por sus valores nutricionales. Esto ya se probó con un caso real (una receta con "2 tazas de harina" + "3 huevos") y da el resultado esperado.
 
 ## 1. Comida
 
