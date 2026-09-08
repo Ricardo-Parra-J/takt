@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { Link, useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -27,6 +27,7 @@ const FILTROS: { key: FiltroTareas; label: string }[] = [
 
 export default function TareasScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const [filtro, setFiltro] = useState<FiltroTareas>('activas');
   const [tareas, setTareas] = useState<Tarea[]>([]);
   const [nuevoTitulo, setNuevoTitulo] = useState('');
@@ -69,9 +70,19 @@ export default function TareasScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <ThemedText type="title" style={styles.title}>
-          Tareas
-        </ThemedText>
+        <View style={styles.tituloRow}>
+          <ThemedText type="title" style={styles.title}>
+            Tareas
+          </ThemedText>
+          <Link href="/tareas/tarea-form" asChild>
+            <Pressable hitSlop={8}>
+              <ThemedView type="backgroundElement" style={styles.botonDetalle}>
+                <Ionicons name="add" size={20} color={theme.text} />
+                <ThemedText type="small">Con detalles</ThemedText>
+              </ThemedView>
+            </Pressable>
+          </Link>
+        </View>
 
         <ThemedView type="backgroundElement" style={styles.addRow}>
           <TextInput
@@ -88,7 +99,7 @@ export default function TareasScreen() {
           </Pressable>
         </ThemedView>
 
-        <ThemedView style={styles.filtros}>
+        <View style={styles.filtros}>
           {FILTROS.map((f) => (
             <Pressable key={f.key} onPress={() => setFiltro(f.key)}>
               <ThemedView
@@ -98,7 +109,7 @@ export default function TareasScreen() {
               </ThemedView>
             </Pressable>
           ))}
-        </ThemedView>
+        </View>
 
         {!cargando && tareas.length === 0 && (
           <ThemedText type="small" themeColor="textSecondary" style={styles.vacio}>
@@ -111,7 +122,12 @@ export default function TareasScreen() {
           keyExtractor={(t) => String(t.id)}
           contentContainerStyle={styles.lista}
           renderItem={({ item }) => (
-            <TareaRow tarea={item} onToggle={() => onToggle(item)} onEliminar={() => onEliminar(item)} />
+            <TareaRow
+              tarea={item}
+              onToggle={() => onToggle(item)}
+              onEliminar={() => onEliminar(item)}
+              onEditar={() => router.push(`/tareas/tarea-form?id=${item.id}`)}
+            />
           )}
         />
       </SafeAreaView>
@@ -123,10 +139,12 @@ function TareaRow({
   tarea,
   onToggle,
   onEliminar,
+  onEditar,
 }: {
   tarea: Tarea;
   onToggle: () => void;
   onEliminar: () => void;
+  onEditar: () => void;
 }) {
   const theme = useTheme();
   const atrasada = esAtrasada(tarea);
@@ -141,19 +159,26 @@ function TareaRow({
         />
       </Pressable>
 
-      <View style={styles.rowText}>
+      <Pressable style={styles.rowText} onPress={onEditar}>
         <ThemedText
           style={tarea.completada === 1 ? styles.tachado : undefined}
           themeColor={tarea.completada ? 'textSecondary' : 'text'}>
           {tarea.titulo}
         </ThemedText>
-        {tarea.fecha_plazo && (
-          <ThemedText type="small" themeColor={atrasada ? undefined : 'textSecondary'} style={atrasada && styles.atrasada}>
-            {tarea.fecha_plazo}
-            {atrasada ? ' · atrasada' : ''}
-          </ThemedText>
-        )}
-      </View>
+        <View style={styles.rowDetalles}>
+          {tarea.fecha_plazo && (
+            <ThemedText type="small" themeColor={atrasada ? undefined : 'textSecondary'} style={atrasada && styles.atrasada}>
+              {tarea.fecha_plazo}
+              {atrasada ? ' · atrasada' : ''}
+            </ThemedText>
+          )}
+          {tarea.prioridad && (
+            <ThemedText type="small" themeColor="textSecondary" style={styles.prioridad}>
+              {PRIORIDAD_LABEL[tarea.prioridad]}
+            </ThemedText>
+          )}
+        </View>
+      </Pressable>
 
       <Pressable onPress={onEliminar} hitSlop={8}>
         <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
@@ -162,10 +187,25 @@ function TareaRow({
   );
 }
 
+const PRIORIDAD_LABEL: Record<string, string> = {
+  alta: '· Prioridad alta',
+  media: '· Prioridad media',
+  baja: '· Prioridad baja',
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: Spacing.four, gap: Spacing.three },
+  tituloRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 28, lineHeight: 34 },
+  botonDetalle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+    borderRadius: Spacing.four,
+  },
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -191,6 +231,8 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.three,
   },
   rowText: { flex: 1, gap: 2 },
+  rowDetalles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  prioridad: {},
   tachado: { textDecorationLine: 'line-through' },
   atrasada: { color: '#D64545' },
 });
