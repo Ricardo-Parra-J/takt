@@ -12,6 +12,7 @@ Por cada módulo, las tablas principales y para qué sirven. El detalle de colum
 - Lo que **no** es universal es convertir entre masa y volumen (depende de la densidad de cada ingrediente — 1 taza de harina no pesa lo mismo que 1 taza de agua), ni las unidades de "conteo" (1 huevo, 1 diente de ajo). Para esos casos existen `ingrediente_equivalencias_unidad` y `producto_equivalencias_unidad`: por ejemplo, "harina: 1 taza = 120 g" queda guardado ahí, específico para ese ingrediente.
 - Cada Ingrediente/Producto guarda sus valores nutricionales relativos a su propia `porcion_base_cantidad` + `porcion_base_unidad_id` (ej. "por 100 g" para harina, o "por 1 unidad" directamente para huevo) — se elige la unidad que tenga más sentido para ese ingrediente en particular, no siempre 100 g.
 - **Cómo se calcula la nutrición de una receta:** por cada ingrediente/producto de la receta, se convierte su cantidad a la unidad base de ese ingrediente (usando conversión universal si es la misma dimensión, o la equivalencia propia del ingrediente si no), se calcula la proporción respecto a su porción base, y se multiplica por sus valores nutricionales. Esto ya se probó con un caso real (una receta con "2 tazas de harina" + "3 huevos") y da el resultado esperado.
+- **Regla de integridad — NUEVO.** Un trigger bloquea guardar una equivalencia manual para una unidad que ya se convierte de forma universal (ej. no se puede definir a mano "1 kg de harina = 1000 g", porque eso ya lo resuelve `unidades_medida`). Esto no es una violación de forma normal en el sentido clásico, pero sí evitaba un riesgo real: que existieran dos fuentes de conversión distintas para el mismo par unidad-ingrediente, con posibilidad de dar resultados contradictorios. Probado: bloquea el caso redundante (kg→g) y permite los que sí hacen falta (taza→g, o cualquier equivalencia de "conteo" como rebanada).
 
 ## 1. Comida
 
@@ -58,6 +59,8 @@ Por cada módulo, las tablas principales y para qué sirven. El detalle de colum
 - `configuracion_app` — tema, bloqueo (PIN/huella), y cuándo fue el último respaldo (para el recordatorio periódico de exportar).
 
 ## Normalización (hasta 4FN)
+
+**Revisión tras agregar el sistema de unidades:** las tablas nuevas (`unidades_medida`, `ingrediente_equivalencias_unidad`, `producto_equivalencias_unidad`) siguen cumpliendo 1FN-4FN — cada una representa un solo hecho, sin grupos repetidos ni dependencias multivaluadas mezcladas. El único hallazgo fue el de integridad cruzada entre tablas (equivalencias redundantes) descrito arriba, que no es una violación de forma normal clásica pero se cerró con un trigger de todos modos.
 
 Se revisó tabla por tabla contra 1FN, 2FN, 3FN, BCNF y 4FN. Se encontró y corrigió una violación real:
 

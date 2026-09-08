@@ -234,6 +234,36 @@ CREATE TABLE lista_compra_items (
   CHECK ((ingrediente_id IS NOT NULL) <> (producto_id IS NOT NULL))
 );
 
+-- Evita equivalencias manuales redundantes: si la unidad ya se convierte de forma
+-- universal (misma 'dimension' que la unidad base del ingrediente/producto, y no es
+-- 'conteo'), no debe existir además una fila manual para ese mismo par — evita que
+-- dos fuentes de conversión puedan dar resultados distintos para lo mismo.
+CREATE TRIGGER trg_ingrediente_equiv_no_redundante
+BEFORE INSERT ON ingrediente_equivalencias_unidad
+FOR EACH ROW
+WHEN (SELECT dimension FROM unidades_medida WHERE id = NEW.unidad_id) != 'conteo'
+ AND (SELECT dimension FROM unidades_medida WHERE id = NEW.unidad_id) = (
+       SELECT um.dimension FROM ingredientes i
+       JOIN unidades_medida um ON um.id = i.porcion_base_unidad_id
+       WHERE i.id = NEW.ingrediente_id
+     )
+BEGIN
+  SELECT RAISE(ABORT, 'Esa unidad ya se convierte de forma universal a la unidad base del ingrediente; no se necesita (ni se permite) una equivalencia manual.');
+END;
+
+CREATE TRIGGER trg_producto_equiv_no_redundante
+BEFORE INSERT ON producto_equivalencias_unidad
+FOR EACH ROW
+WHEN (SELECT dimension FROM unidades_medida WHERE id = NEW.unidad_id) != 'conteo'
+ AND (SELECT dimension FROM unidades_medida WHERE id = NEW.unidad_id) = (
+       SELECT um.dimension FROM productos p
+       JOIN unidades_medida um ON um.id = p.porcion_base_unidad_id
+       WHERE p.id = NEW.producto_id
+     )
+BEGIN
+  SELECT RAISE(ABORT, 'Esa unidad ya se convierte de forma universal a la unidad base del producto; no se necesita (ni se permite) una equivalencia manual.');
+END;
+
 -- ============================================================
 -- MÓDULO 2: CALENDARIO
 -- ============================================================
