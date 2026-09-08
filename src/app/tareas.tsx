@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput } from 'react-native';
+import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -141,7 +141,7 @@ function TareaRow({
         />
       </Pressable>
 
-      <ThemedView style={styles.rowText}>
+      <View style={styles.rowText}>
         <ThemedText
           style={tarea.completada === 1 ? styles.tachado : undefined}
           themeColor={tarea.completada ? 'textSecondary' : 'text'}>
@@ -153,7 +153,7 @@ function TareaRow({
             {atrasada ? ' · atrasada' : ''}
           </ThemedText>
         )}
-      </ThemedView>
+      </View>
 
       <Pressable onPress={onEliminar} hitSlop={8}>
         <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />

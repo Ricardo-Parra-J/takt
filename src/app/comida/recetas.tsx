@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput } from 'react-native';
+import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Link, Stack, useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,13 +54,13 @@ export default function RecetasScreen() {
           renderItem={({ item }) => (
             <Pressable onPress={() => router.push(`/comida/receta-form?id=${item.id}`)}>
               <ThemedView type="backgroundElement" style={styles.row}>
-                <ThemedView style={styles.rowText}>
+                <View style={styles.rowText}>
                   <ThemedText>{item.nombre}</ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
                     {item.porciones} {item.porciones === 1 ? 'porción' : 'porciones'}
                     {item.tipos ? ` · ${item.tipos}` : ''}
                   </ThemedText>
-                </ThemedView>
+                </View>
                 {item.favorita === 1 && <Ionicons name="star" size={18} color="#D4A017" />}
                 <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
               </ThemedView>
