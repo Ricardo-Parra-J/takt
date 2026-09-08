@@ -1,14 +1,14 @@
-# Takt — Especificación funcional (borrador v4)
+# Takt — Especificación funcional (borrador v5)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
 ## Arquitectura de datos — DECIDIDO
 
-**Backend: Supabase (plan gratuito), sin costo.**
+**Todo local, sin nube ni cuenta.** Base de datos SQLite dentro del propio teléfono (vía `expo-sqlite`, incluido en Expo, sin configuración nativa extra). Encaja bien con lo relacional de los datos de Takt (recetas hechas de ingredientes con cantidades, rutinas hechas de ejercicios con series/repeticiones/peso, tareas con categorías, gastos con categorías).
 
-Motivo: los datos de Takt son muy relacionales (recetas hechas de ingredientes con cantidades, rutinas hechas de ejercicios con series/repeticiones/peso, tareas con categorías, gastos con categorías), y Supabase es una base de datos Postgres real, más natural para esto que una base NoSQL como Firebase/Firestore. Además incluye autenticación de usuario y sincroniza automáticamente entre dispositivos.
+**Exportación e importación de datos — funcionalidad central (no opcional).** Ya que no hay nube, esto cumple dos roles: respaldo manual de tus datos, y forma de pasar tus datos a otro teléfono si algún día cambias de equipo. Exporta todo (recetas, ingredientes, productos, rutinas, ejercicios, tareas, gastos, etc.) a un archivo — la idea es un archivo JSON legible y portable — que luego se puede importar de vuelta o en otro dispositivo. Se guarda/comparte con las herramientas propias del teléfono (ej. guardarlo en Google Drive, enviarlo por correo, etc., a elección tuya al momento de exportar).
 
-Límites del plan gratuito de Supabase (suficiente de sobra para un solo usuario): 500 MB de base de datos, 1 GB de almacenamiento de archivos, 5 GB de tráfico de salida al mes, solicitudes a la API ilimitadas. La única letra chica: un proyecto gratuito se pausa si pasa **1 semana sin actividad** — no se pierden datos, solo hay que "despausarlo" con un clic en el panel de Supabase; en un uso diario normal esto no debería pasar nunca.
+**Nota:** al ser local, no hay sincronización automática entre dispositivos — si usas la app en más de un teléfono, la forma de mantenerlos al día es exportar en uno e importar en el otro.
 
 ## 1. Comida
 
@@ -82,10 +82,10 @@ Confirmado que se agrega, pero no encaja de lleno en ninguno de los 5 módulos. 
 ## Transversales confirmadas
 
 - Modo oscuro y claro — Fase 1, estándar.
-- Exportar datos (CSV/PDF) — Fase 2, principalmente útil para Finanzas.
+- Exportar/Importar datos — ya cubierto arriba como parte central de la arquitectura (no es Fase 2).
 - Widgets de pantalla de inicio — Fase 2 (requiere trabajo nativo extra).
 - Personalización visual (temas, colores, íconos) — Fase 2.
-- Multi-dispositivo — viene incluido al usar Supabase como backend.
+- Multi-dispositivo — no automático al ser local; se logra exportando desde un teléfono e importando en el otro.
 
 ## Descartado
 
