@@ -17,8 +17,8 @@ export const Colors = {
     // Color de acento de Takt: usado en botones primarios, chips/tabs activos,
     // barras de progreso y cualquier elemento que deba destacar como "la
     // acción principal" de la pantalla.
-    accent: '#4F46E5',
-    accentSoft: '#EEEEFB',
+    accent: '#0A7D6E',
+    accentSoft: '#E1F5F1',
     onAccent: '#FFFFFF',
   },
   dark: {
@@ -27,9 +27,9 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
-    accent: '#8B85F4',
-    accentSoft: 'rgba(139, 133, 244, 0.16)',
-    onAccent: '#14122B',
+    accent: '#3DDCC4',
+    accentSoft: 'rgba(61, 220, 196, 0.16)',
+    onAccent: '#07332C',
   },
 } as const;
 
