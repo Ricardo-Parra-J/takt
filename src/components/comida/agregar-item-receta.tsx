@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { UnidadPicker } from '@/components/comida/unidad-picker';
@@ -74,9 +75,9 @@ export function AgregarItemReceta({
         />
         {resultados.map((r) => (
           <Pressable key={r.id} onPress={() => seleccionar(r)}>
-            <ThemedView type="backgroundElement" style={styles.resultado}>
+            <Card style={styles.resultado}>
               <ThemedText type="small">{r.nombre}</ThemedText>
-            </ThemedView>
+            </Card>
           </Pressable>
         ))}
         {busqueda.trim() !== '' && resultados.length === 0 && (
@@ -113,11 +114,7 @@ export function AgregarItemReceta({
           <UnidadPicker value={unidadId} onChange={setUnidadId} />
         </View>
       </View>
-      <Pressable onPress={confirmarAgregar} style={styles.botonAgregar}>
-        <ThemedView type="backgroundSelected" style={styles.botonAgregarInner}>
-          <ThemedText type="smallBold">Agregar a la receta</ThemedText>
-        </ThemedView>
-      </Pressable>
+      <AppButton label="Agregar a la receta" onPress={confirmarAgregar} style={styles.botonAgregar} />
     </View>
   );
 }
@@ -125,12 +122,11 @@ export function AgregarItemReceta({
 const styles = StyleSheet.create({
   container: { gap: Spacing.two },
   input: { borderWidth: 1, borderRadius: Spacing.two, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, fontSize: 15 },
-  resultado: { padding: Spacing.two, borderRadius: Spacing.two },
+  resultado: { padding: Spacing.two },
   seleccionadoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   seleccionadoNombre: { flex: 1 },
   filaCantidad: { flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-start' },
   inputCorto: { width: 90, borderWidth: 1, borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, fontSize: 15 },
   unidadPickerFlex: { flex: 1 },
   botonAgregar: { marginTop: Spacing.one },
-  botonAgregarInner: { padding: Spacing.two, borderRadius: Spacing.two, alignItems: 'center' },
 });

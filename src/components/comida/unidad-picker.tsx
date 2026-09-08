@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Chip } from '@/components/ui/chip';
 import { Spacing } from '@/constants/theme';
 import { listUnidades, UnidadMedida } from '@/db/repositories/unidades';
 
@@ -39,13 +39,7 @@ export function UnidadPicker({
             </ThemedText>
             <View style={styles.chips}>
               {deEstaDimension.map((u) => (
-                <Pressable key={u.id} onPress={() => onChange(u.id)}>
-                  <ThemedView
-                    type={value === u.id ? 'backgroundSelected' : 'backgroundElement'}
-                    style={styles.chip}>
-                    <ThemedText type="small">{u.nombre}</ThemedText>
-                  </ThemedView>
-                </Pressable>
+                <Chip key={u.id} label={u.nombre} selected={value === u.id} onPress={() => onChange(u.id)} />
               ))}
             </View>
           </View>
@@ -59,9 +53,4 @@ const styles = StyleSheet.create({
   container: { gap: Spacing.two },
   grupo: { gap: Spacing.one },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
-  chip: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.four,
-  },
 });

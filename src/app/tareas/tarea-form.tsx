@@ -7,8 +7,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { buscarOCrearCategoriaTarea, CategoriaTarea, listCategoriasTarea } from '@/db/repositories/categorias-tarea';
 import {
   actualizarTareaCompleta,
@@ -199,18 +201,18 @@ export default function TareaFormScreen() {
           {fechaPlazo ? (
             <View style={styles.filaFecha}>
               <Pressable onPress={() => setMostrarPickerFecha(true)}>
-                <ThemedView type="backgroundElement" style={styles.chipFecha}>
-                  <ThemedText type="small">
+                <View style={[styles.chipFecha, { backgroundColor: theme.accentSoft }]}>
+                  <ThemedText type="small" style={{ color: theme.accent }}>
                     {fechaPlazo.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </ThemedText>
-                </ThemedView>
+                </View>
               </Pressable>
               <Pressable onPress={() => setMostrarPickerHora(true)}>
-                <ThemedView type="backgroundElement" style={styles.chipFecha}>
-                  <ThemedText type="small">
+                <View style={[styles.chipFecha, { backgroundColor: theme.accentSoft }]}>
+                  <ThemedText type="small" style={{ color: theme.accent }}>
                     {fechaPlazo.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
                   </ThemedText>
-                </ThemedView>
+                </View>
               </Pressable>
               <Pressable onPress={() => setFechaPlazo(null)} hitSlop={8}>
                 <Ionicons name="close-circle" size={22} color={theme.textSecondary} />
@@ -218,10 +220,12 @@ export default function TareaFormScreen() {
             </View>
           ) : (
             <Pressable onPress={() => setFechaPlazo(new Date())}>
-              <ThemedView type="backgroundElement" style={styles.chipAgregarFecha}>
-                <Ionicons name="calendar-outline" size={16} color={theme.text} />
-                <ThemedText type="small">Agregar fecha de término</ThemedText>
-              </ThemedView>
+              <View style={[styles.chipAgregarFecha, { backgroundColor: theme.accentSoft }]}>
+                <Ionicons name="calendar-outline" size={16} color={theme.accent} />
+                <ThemedText type="small" style={{ color: theme.accent }}>
+                  Agregar fecha de término
+                </ThemedText>
+              </View>
             </Pressable>
           )}
           {!fechaPlazo && (
@@ -257,11 +261,7 @@ export default function TareaFormScreen() {
           </ThemedText>
           <View style={styles.chips}>
             {PRIORIDADES.map((p) => (
-              <Pressable key={p.label} onPress={() => setPrioridad(p.key)}>
-                <ThemedView type={prioridad === p.key ? 'backgroundSelected' : 'backgroundElement'} style={styles.chip}>
-                  <ThemedText type="small">{p.label}</ThemedText>
-                </ThemedView>
-              </Pressable>
+              <Chip key={p.label} label={p.label} selected={prioridad === p.key} onPress={() => setPrioridad(p.key)} />
             ))}
           </View>
 
@@ -269,23 +269,15 @@ export default function TareaFormScreen() {
             Categoría
           </ThemedText>
           <View style={styles.chips}>
-            <Pressable onPress={() => setCategoriaId(null)}>
-              <ThemedView type={categoriaId === null ? 'backgroundSelected' : 'backgroundElement'} style={styles.chip}>
-                <ThemedText type="small">Sin categoría</ThemedText>
-              </ThemedView>
-            </Pressable>
+            <Chip label="Sin categoría" selected={categoriaId === null} onPress={() => setCategoriaId(null)} />
             {categorias.map((c) => (
-              <Pressable key={c.id} onPress={() => setCategoriaId(c.id)}>
-                <ThemedView type={categoriaId === c.id ? 'backgroundSelected' : 'backgroundElement'} style={styles.chip}>
-                  <ThemedText type="small">{c.nombre}</ThemedText>
-                </ThemedView>
-              </Pressable>
+              <Chip key={c.id} label={c.nombre} selected={categoriaId === c.id} onPress={() => setCategoriaId(c.id)} />
             ))}
             {!creandoCategoria && (
               <Pressable onPress={() => setCreandoCategoria(true)}>
-                <ThemedView type="backgroundElement" style={styles.chip}>
+                <View style={[styles.chip, { backgroundColor: theme.backgroundElement }]}>
                   <Ionicons name="add" size={14} color={theme.text} />
-                </ThemedView>
+                </View>
               </Pressable>
             )}
           </View>
@@ -301,7 +293,7 @@ export default function TareaFormScreen() {
                 style={[styles.input, styles.inputFlex, { color: theme.text, borderColor: theme.backgroundSelected }]}
               />
               <Pressable onPress={onCrearCategoria} hitSlop={8}>
-                <Ionicons name="checkmark-circle" size={26} color={theme.text} />
+                <Ionicons name="checkmark-circle" size={26} color={theme.accent} />
               </Pressable>
             </View>
           )}
@@ -310,7 +302,7 @@ export default function TareaFormScreen() {
             <Ionicons
               name={esMetaLargoPlazo ? 'checkbox' : 'square-outline'}
               size={20}
-              color={esMetaLargoPlazo ? theme.text : theme.textSecondary}
+              color={esMetaLargoPlazo ? theme.accent : theme.textSecondary}
             />
             <ThemedText type="small">Meta de mediano/largo plazo</ThemedText>
           </Pressable>
@@ -319,12 +311,12 @@ export default function TareaFormScreen() {
             Subtareas
           </ThemedText>
           {subtareas.map((s, index) => (
-            <ThemedView key={index} type="backgroundElement" style={styles.subtareaRow}>
+            <View key={index} style={[styles.subtareaRow, { backgroundColor: theme.backgroundElement }]}>
               <Pressable onPress={() => onToggleSubtarea(index)} hitSlop={8}>
                 <Ionicons
                   name={s.completada ? 'checkbox' : 'square-outline'}
                   size={20}
-                  color={s.completada ? theme.textSecondary : theme.text}
+                  color={s.completada ? theme.textSecondary : theme.accent}
                 />
               </Pressable>
               <ThemedText type="small" style={[styles.subtareaTexto, s.completada && styles.tachado]}>
@@ -333,7 +325,7 @@ export default function TareaFormScreen() {
               <Pressable onPress={() => onQuitarSubtarea(index)} hitSlop={8}>
                 <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
               </Pressable>
-            </ThemedView>
+            </View>
           ))}
           <View style={styles.filaCategoriaNueva}>
             <TextInput
@@ -345,22 +337,14 @@ export default function TareaFormScreen() {
               style={[styles.input, styles.inputFlex, { color: theme.text, borderColor: theme.backgroundSelected }]}
             />
             <Pressable onPress={onAgregarSubtarea} hitSlop={8}>
-              <Ionicons name="add-circle" size={26} color={theme.text} />
+              <Ionicons name="add-circle" size={26} color={theme.accent} />
             </Pressable>
           </View>
 
-          <Pressable onPress={onGuardar} style={styles.botonGuardar}>
-            <ThemedView type="backgroundSelected" style={styles.botonInner}>
-              <ThemedText type="smallBold">Guardar</ThemedText>
-            </ThemedView>
-          </Pressable>
+          <AppButton label="Guardar" onPress={onGuardar} style={styles.botonGuardar} />
 
           {editando && (
-            <Pressable onPress={onEliminar} style={styles.botonEliminar}>
-              <ThemedText type="small" style={styles.textoEliminar}>
-                Eliminar tarea
-              </ThemedText>
-            </Pressable>
+            <AppButton label="Eliminar tarea" variante="peligro" onPress={onEliminar} style={styles.botonEliminar} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -398,7 +382,7 @@ const styles = StyleSheet.create({
   },
   pista: { marginTop: 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
-  chip: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.one, borderRadius: Spacing.four },
+  chip: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.one + 2, borderRadius: Radius.pill },
   filaCategoriaNueva: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.one },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.three },
   subtareaRow: {

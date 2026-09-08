@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Card } from '@/components/ui/card';
+import { FabButton } from '@/components/ui/button';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { Ingrediente, listIngredientes } from '@/db/repositories/ingredientes';
@@ -30,7 +32,7 @@ export default function IngredientesScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ title: 'Ingredientes' }} />
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        <ThemedView type="backgroundElement" style={styles.buscador}>
+        <Card style={styles.buscador}>
           <Ionicons name="search" size={18} color={theme.textSecondary} />
           <TextInput
             value={busqueda}
@@ -39,7 +41,7 @@ export default function IngredientesScreen() {
             placeholderTextColor={theme.textSecondary}
             style={[styles.buscadorInput, { color: theme.text }]}
           />
-        </ThemedView>
+        </Card>
 
         {ingredientes.length === 0 && (
           <ThemedText type="small" themeColor="textSecondary" style={styles.vacio}>
@@ -53,7 +55,7 @@ export default function IngredientesScreen() {
           contentContainerStyle={styles.lista}
           renderItem={({ item }) => (
             <Pressable onPress={() => router.push(`/comida/ingrediente-form?id=${item.id}`)}>
-              <ThemedView type="backgroundElement" style={styles.row}>
+              <Card style={styles.row}>
                 <View style={styles.rowText}>
                   <ThemedText>{item.nombre}</ThemedText>
                   {item.info_incompleta === 1 && (
@@ -63,17 +65,13 @@ export default function IngredientesScreen() {
                   )}
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
-              </ThemedView>
+              </Card>
             </Pressable>
           )}
         />
 
         <Link href="/comida/ingrediente-form" asChild>
-          <Pressable style={styles.fab}>
-            <ThemedView type="backgroundSelected" style={styles.fabInner}>
-              <Ionicons name="add" size={28} color={theme.text} />
-            </ThemedView>
-          </Pressable>
+          <FabButton />
         </Link>
       </SafeAreaView>
     </ThemedView>
@@ -83,20 +81,11 @@ export default function IngredientesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: Spacing.four, paddingTop: Spacing.three, gap: Spacing.three },
-  buscador: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-    borderRadius: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
+  buscador: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   buscadorInput: { flex: 1, fontSize: 15 },
   vacio: { paddingVertical: Spacing.four, textAlign: 'center' },
   lista: { gap: Spacing.two, paddingBottom: Spacing.six },
-  row: { flexDirection: 'row', alignItems: 'center', padding: Spacing.three, borderRadius: Spacing.three },
+  row: { flexDirection: 'row', alignItems: 'center' },
   rowText: { flex: 1, gap: 2 },
   badge: { color: '#B8860B' },
-  fab: { position: 'absolute', right: Spacing.four, bottom: Spacing.four },
-  fabInner: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
 });

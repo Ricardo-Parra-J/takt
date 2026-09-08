@@ -6,8 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Card } from '@/components/ui/card';
+import { Chip } from '@/components/ui/chip';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import {
   crearTarea,
   eliminarTarea,
@@ -75,16 +77,18 @@ export default function TareasScreen() {
             Tareas
           </ThemedText>
           <Link href="/tareas/tarea-form" asChild>
-            <Pressable hitSlop={8}>
-              <ThemedView type="backgroundElement" style={styles.botonDetalle}>
-                <Ionicons name="add" size={20} color={theme.text} />
-                <ThemedText type="small">Con detalles</ThemedText>
-              </ThemedView>
+            <Pressable hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+              <View style={[styles.botonDetalle, { backgroundColor: theme.accentSoft }]}>
+                <Ionicons name="add" size={18} color={theme.accent} />
+                <ThemedText type="small" style={{ color: theme.accent }}>
+                  Con detalles
+                </ThemedText>
+              </View>
             </Pressable>
           </Link>
         </View>
 
-        <ThemedView type="backgroundElement" style={styles.addRow}>
+        <Card style={styles.addRow}>
           <TextInput
             value={nuevoTitulo}
             onChangeText={setNuevoTitulo}
@@ -94,20 +98,14 @@ export default function TareasScreen() {
             onSubmitEditing={onAgregar}
             returnKeyType="done"
           />
-          <Pressable onPress={onAgregar} hitSlop={8}>
-            <Ionicons name="add-circle" size={30} color={theme.text} />
+          <Pressable onPress={onAgregar} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+            <Ionicons name="add-circle" size={30} color={theme.accent} />
           </Pressable>
-        </ThemedView>
+        </Card>
 
         <View style={styles.filtros}>
           {FILTROS.map((f) => (
-            <Pressable key={f.key} onPress={() => setFiltro(f.key)}>
-              <ThemedView
-                type={filtro === f.key ? 'backgroundSelected' : 'backgroundElement'}
-                style={styles.filtroChip}>
-                <ThemedText type="small">{f.label}</ThemedText>
-              </ThemedView>
-            </Pressable>
+            <Chip key={f.key} label={f.label} selected={filtro === f.key} onPress={() => setFiltro(f.key)} />
           ))}
         </View>
 
@@ -150,12 +148,12 @@ function TareaRow({
   const atrasada = esAtrasada(tarea);
 
   return (
-    <ThemedView type="backgroundElement" style={styles.row}>
+    <Card style={styles.row}>
       <Pressable onPress={onToggle} hitSlop={8}>
         <Ionicons
           name={tarea.completada ? 'checkbox' : 'square-outline'}
           size={24}
-          color={tarea.completada ? theme.textSecondary : theme.text}
+          color={tarea.completada ? theme.textSecondary : theme.accent}
         />
       </Pressable>
 
@@ -183,7 +181,7 @@ function TareaRow({
       <Pressable onPress={onEliminar} hitSlop={8}>
         <Ionicons name="trash-outline" size={20} color={theme.textSecondary} />
       </Pressable>
-    </ThemedView>
+    </Card>
   );
 }
 
@@ -203,32 +201,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.four,
+    paddingVertical: Spacing.one + 2,
+    borderRadius: Radius.pill,
   },
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
     gap: Spacing.two,
   },
   input: { flex: 1, fontSize: 16 },
   filtros: { flexDirection: 'row', gap: Spacing.two, flexWrap: 'wrap' },
-  filtroChip: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
-    borderRadius: Spacing.four,
-  },
   vacio: { paddingVertical: Spacing.four, textAlign: 'center' },
   lista: { gap: Spacing.two, paddingBottom: Spacing.six },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
   },
   rowText: { flex: 1, gap: 2 },
   rowDetalles: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },

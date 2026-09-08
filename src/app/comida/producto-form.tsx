@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
 import { CamposNutricionales, VALORES_VACIOS } from '@/components/comida/campos-nutricionales';
 import { UnidadPicker } from '@/components/comida/unidad-picker';
 import { useTheme } from '@/hooks/use-theme';
@@ -142,18 +143,10 @@ export default function ProductoFormScreen() {
           </ThemedText>
           <CamposNutricionales valores={valores} onChange={setValores} />
 
-          <Pressable onPress={onGuardar} style={styles.botonGuardar}>
-            <ThemedView type="backgroundSelected" style={styles.botonInner}>
-              <ThemedText type="smallBold">Guardar</ThemedText>
-            </ThemedView>
-          </Pressable>
+          <AppButton label="Guardar" onPress={onGuardar} style={styles.botonGuardar} />
 
           {editando && (
-            <Pressable onPress={onEliminar} style={styles.botonEliminar}>
-              <ThemedText type="small" style={styles.textoEliminar}>
-                Eliminar producto
-              </ThemedText>
-            </Pressable>
+            <AppButton label="Eliminar producto" variante="peligro" onPress={onEliminar} style={styles.botonEliminar} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -171,7 +164,5 @@ const styles = StyleSheet.create({
   unidadPickerFlex: { flex: 1 },
   seccion: { marginTop: Spacing.three },
   botonGuardar: { marginTop: Spacing.four },
-  botonInner: { padding: Spacing.three, borderRadius: Spacing.three, alignItems: 'center' },
-  botonEliminar: { marginTop: Spacing.three, alignItems: 'center' },
-  textoEliminar: { color: '#D64545' },
+  botonEliminar: { marginTop: Spacing.three },
 });

@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Card } from '@/components/ui/card';
+import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { listTareas } from '@/db/repositories/tareas';
 
@@ -44,10 +46,10 @@ export default function HoyScreen() {
           Hoy
         </ThemedText>
 
-        <ThemedView style={styles.cards}>
-          <Card label="Tareas activas" valor={activas} />
-          <Card label="Tareas atrasadas" valor={atrasadas} resaltado={atrasadas > 0} />
-        </ThemedView>
+        <View style={styles.cards}>
+          <StatCard label="Tareas activas" valor={activas} />
+          <StatCard label="Tareas atrasadas" valor={atrasadas} resaltado={atrasadas > 0} />
+        </View>
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.nota}>
           Esta pantalla va a ir juntando lo de todos los módulos (próximo bloque del
@@ -60,16 +62,17 @@ export default function HoyScreen() {
   );
 }
 
-function Card({ label, valor, resaltado }: { label: string; valor: number; resaltado?: boolean }) {
+function StatCard({ label, valor, resaltado }: { label: string; valor: number; resaltado?: boolean }) {
+  const theme = useTheme();
   return (
-    <ThemedView type="backgroundElement" style={styles.card}>
-      <ThemedText type="title" style={[styles.cardValor, resaltado && styles.resaltado]}>
+    <Card style={styles.card}>
+      <ThemedText type="title" style={[styles.cardValor, { color: resaltado ? '#D64545' : theme.accent }]}>
         {valor}
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
-    </ThemedView>
+    </Card>
   );
 }
 
@@ -79,8 +82,7 @@ const styles = StyleSheet.create({
   fecha: { textTransform: 'capitalize' },
   title: { fontSize: 32, lineHeight: 38, marginBottom: Spacing.three },
   cards: { flexDirection: 'row', gap: Spacing.three },
-  card: { flex: 1, borderRadius: Spacing.three, padding: Spacing.four, gap: Spacing.one },
+  card: { flex: 1, gap: Spacing.one },
   cardValor: { fontSize: 36, lineHeight: 40 },
-  resaltado: { color: '#D64545' },
   nota: { marginTop: Spacing.five, lineHeight: 20 },
 });

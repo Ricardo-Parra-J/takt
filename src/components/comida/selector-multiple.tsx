@@ -1,7 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Chip } from '@/components/ui/chip';
 import { Spacing } from '@/constants/theme';
 import { CatalogoItem } from '@/db/repositories/catalogos';
 
@@ -28,13 +27,7 @@ export function SelectorMultiple({
   return (
     <View style={styles.chips}>
       {opciones.map((op) => (
-        <Pressable key={op.id} onPress={() => alternar(op.id)}>
-          <ThemedView
-            type={seleccionados.includes(op.id) ? 'backgroundSelected' : 'backgroundElement'}
-            style={styles.chip}>
-            <ThemedText type="small">{op.nombre}</ThemedText>
-          </ThemedView>
-        </Pressable>
+        <Chip key={op.id} label={op.nombre} selected={seleccionados.includes(op.id)} onPress={() => alternar(op.id)} />
       ))}
     </View>
   );
@@ -42,5 +35,4 @@ export function SelectorMultiple({
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one },
-  chip: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.one, borderRadius: Spacing.four },
 });

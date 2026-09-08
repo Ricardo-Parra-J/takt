@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { actualizarConfiguracion, getConfiguracion } from '@/db/repositories/finanzas';
@@ -13,16 +14,12 @@ export default function ConfiguracionFinanzasScreen() {
   const router = useRouter();
   const theme = useTheme();
 
-  const [sueldo, setSueldo] = useState('0');
-  const [diaPago, setDiaPago] = useState('1');
   const [porcentajeAhorro, setPorcentajeAhorro] = useState('0');
   const [saldoInicial, setSaldoInicial] = useState('0');
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     getConfiguracion().then((c) => {
-      setSueldo(String(c.sueldo_mensual));
-      setDiaPago(String(c.dia_pago));
       setPorcentajeAhorro(String(c.porcentaje_ahorro));
       setSaldoInicial(String(c.saldo_inicial));
       setCargando(false);
@@ -30,19 +27,12 @@ export default function ConfiguracionFinanzasScreen() {
   }, []);
 
   async function onGuardar() {
-    const dia = Number(diaPago);
     const pct = Number(porcentajeAhorro.replace(',', '.'));
-    if (!dia || dia < 1 || dia > 31) {
-      Alert.alert('Día inválido', 'El día de pago del sueldo debe estar entre 1 y 31.');
-      return;
-    }
     if (Number.isNaN(pct) || pct < 0 || pct > 100) {
       Alert.alert('Porcentaje inválido', 'El % de ahorro debe estar entre 0 y 100.');
       return;
     }
     await actualizarConfiguracion({
-      sueldo_mensual: Number(sueldo.replace(',', '.')) || 0,
-      dia_pago: dia,
       porcentaje_ahorro: pct,
       saldo_inicial: Number(saldoInicial.replace(',', '.')) || 0,
       moneda: 'CLP',
@@ -58,28 +48,6 @@ export default function ConfiguracionFinanzasScreen() {
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <ThemedText type="small" themeColor="textSecondary">
-            Sueldo mensual (CLP)
-          </ThemedText>
-          <TextInput
-            value={sueldo}
-            onChangeText={setSueldo}
-            keyboardType="decimal-pad"
-            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-          />
-
-          <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
-            Día del mes en que se paga
-          </ThemedText>
-          <TextInput
-            value={diaPago}
-            onChangeText={setDiaPago}
-            keyboardType="number-pad"
-            placeholder="1-31"
-            placeholderTextColor={theme.textSecondary}
-            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-          />
-
-          <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
             % de ahorro objetivo
           </ThemedText>
           <TextInput
@@ -90,6 +58,10 @@ export default function ConfiguracionFinanzasScreen() {
             placeholderTextColor={theme.textSecondary}
             style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
           />
+          <ThemedText type="small" themeColor="textSecondary" style={styles.pista}>
+            Se calcula sobre el total de tus ingresos fijos activos (ver "Movimientos
+            recurrentes") — ej. tu sueldo.
+          </ThemedText>
 
           <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
             Saldo inicial (cuánta plata tienes hoy)
@@ -105,11 +77,7 @@ export default function ConfiguracionFinanzasScreen() {
             adelante ese saldo se actualiza solo con cada movimiento.
           </ThemedText>
 
-          <Pressable onPress={onGuardar} style={styles.botonGuardar}>
-            <ThemedView type="backgroundSelected" style={styles.botonInner}>
-              <ThemedText type="smallBold">Guardar</ThemedText>
-            </ThemedView>
-          </Pressable>
+          <AppButton label="Guardar" onPress={onGuardar} style={styles.botonGuardar} />
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -124,5 +92,4 @@ const styles = StyleSheet.create({
   seccion: { marginTop: Spacing.three },
   pista: { marginTop: 4, lineHeight: 18 },
   botonGuardar: { marginTop: Spacing.four },
-  botonInner: { padding: Spacing.three, borderRadius: Spacing.three, alignItems: 'center' },
 });

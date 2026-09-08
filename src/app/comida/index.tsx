@@ -5,8 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Card } from '@/components/ui/card';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 
 const OPCIONES = [
   { href: '/comida/ingredientes', icon: 'nutrition-outline', titulo: 'Ingredientes', desc: 'Alimentos genéricos con valores nutricionales' },
@@ -27,8 +28,10 @@ export default function ComidaHubScreen() {
         {OPCIONES.map((op) => (
           <Link key={op.href} href={op.href} asChild>
             <Pressable>
-              <ThemedView type="backgroundElement" style={styles.card}>
-                <Ionicons name={op.icon as any} size={28} color={theme.text} />
+              <Card style={styles.card}>
+                <View style={[styles.iconoFondo, { backgroundColor: theme.accentSoft }]}>
+                  <Ionicons name={op.icon as any} size={24} color={theme.accent} />
+                </View>
                 <View style={styles.cardTexto}>
                   <ThemedText type="smallBold">{op.titulo}</ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
@@ -36,7 +39,7 @@ export default function ComidaHubScreen() {
                   </ThemedText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-              </ThemedView>
+              </Card>
             </Pressable>
           </Link>
         ))}
@@ -49,12 +52,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingHorizontal: Spacing.four, gap: Spacing.three },
   title: { fontSize: 28, lineHeight: 34, marginBottom: Spacing.two },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: Spacing.three,
-  },
+  card: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
+  iconoFondo: { width: 44, height: 44, borderRadius: Radius.medium, alignItems: 'center', justifyContent: 'center' },
   cardTexto: { flex: 1, gap: 2 },
 });

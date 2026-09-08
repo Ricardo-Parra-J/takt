@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/constants/theme';
 import { SelectorMultiple } from '@/components/comida/selector-multiple';
@@ -263,14 +265,14 @@ export default function RecetaFormScreen() {
             Ingredientes
           </ThemedText>
           {ingredientesAgregados.map((item, index) => (
-            <ThemedView key={`${item.ingrediente_id}-${index}`} type="backgroundElement" style={styles.itemAgregado}>
+            <Card key={`${item.ingrediente_id}-${index}`} style={styles.itemAgregado}>
               <ThemedText type="small" style={styles.itemAgregadoTexto}>
                 {item.nombre} — {item.cantidad} {item.unidad_nombre}
               </ThemedText>
               <Pressable onPress={() => quitarIngrediente(index)}>
                 <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
               </Pressable>
-            </ThemedView>
+            </Card>
           ))}
           <AgregarItemReceta tipo="ingrediente" onAgregar={agregarIngrediente} />
 
@@ -278,19 +280,19 @@ export default function RecetaFormScreen() {
             Productos
           </ThemedText>
           {productosAgregados.map((item, index) => (
-            <ThemedView key={`${item.producto_id}-${index}`} type="backgroundElement" style={styles.itemAgregado}>
+            <Card key={`${item.producto_id}-${index}`} style={styles.itemAgregado}>
               <ThemedText type="small" style={styles.itemAgregadoTexto}>
                 {item.nombre} — {item.cantidad} {item.unidad_nombre}
               </ThemedText>
               <Pressable onPress={() => quitarProducto(index)}>
                 <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
               </Pressable>
-            </ThemedView>
+            </Card>
           ))}
           <AgregarItemReceta tipo="producto" onAgregar={agregarProducto} />
 
           {nutricion && (ingredientesAgregados.length > 0 || productosAgregados.length > 0) && (
-            <ThemedView type="backgroundElement" style={[styles.seccion, styles.resumenNutricional]}>
+            <Card style={[styles.seccion, styles.resumenNutricional]}>
               <ThemedText type="smallBold">Valores nutricionales por porción</ThemedText>
               {nutricion.incompleta && (
                 <ThemedText type="small" style={styles.avisoIncompleto}>
@@ -304,7 +306,7 @@ export default function RecetaFormScreen() {
                   </ThemedText>
                 ))}
               </View>
-            </ThemedView>
+            </Card>
           )}
 
           <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
@@ -320,18 +322,10 @@ export default function RecetaFormScreen() {
             style={[styles.inputMultilinea, { color: theme.text, borderColor: theme.backgroundSelected }]}
           />
 
-          <Pressable onPress={onGuardar} style={styles.botonGuardar}>
-            <ThemedView type="backgroundSelected" style={styles.botonInner}>
-              <ThemedText type="smallBold">Guardar</ThemedText>
-            </ThemedView>
-          </Pressable>
+          <AppButton label="Guardar" onPress={onGuardar} style={styles.botonGuardar} />
 
           {editando && (
-            <Pressable onPress={onEliminar} style={styles.botonEliminar}>
-              <ThemedText type="small" style={styles.textoEliminar}>
-                Eliminar receta
-              </ThemedText>
-            </Pressable>
+            <AppButton label="Eliminar receta" variante="peligro" onPress={onEliminar} style={styles.botonEliminar} />
           )}
         </ScrollView>
       </SafeAreaView>
@@ -362,17 +356,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.two,
-    borderRadius: Spacing.two,
     marginBottom: Spacing.one,
   },
   itemAgregadoTexto: { flex: 1, marginRight: Spacing.two },
-  resumenNutricional: { padding: Spacing.three, borderRadius: Spacing.three, gap: Spacing.one },
+  resumenNutricional: { gap: Spacing.one },
   avisoIncompleto: { color: '#B8860B' },
   gridResumen: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   campoResumen: { width: '47%' },
   botonGuardar: { marginTop: Spacing.four },
-  botonInner: { padding: Spacing.three, borderRadius: Spacing.three, alignItems: 'center' },
-  botonEliminar: { marginTop: Spacing.three, alignItems: 'center' },
-  textoEliminar: { color: '#D64545' },
+  botonEliminar: { marginTop: Spacing.three },
 });

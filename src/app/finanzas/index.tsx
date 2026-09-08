@@ -6,8 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { AppButton } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import {
   calcularResumenMes,
   calcularSaldoTotal,
@@ -23,10 +25,8 @@ import {
 const NOMBRE_MES = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
 const TIPO_LABEL: Record<string, string> = {
-  sueldo: 'Sueldo',
   ganancia: 'Ganancia',
   gasto: 'Gasto',
-  gasto_obligatorio: 'Gasto obligatorio',
 };
 
 export default function FinanzasScreen() {
@@ -69,18 +69,18 @@ export default function FinanzasScreen() {
             Finanzas
           </ThemedText>
           <View style={styles.accionesHeader}>
-            <Link href="/finanzas/gastos-obligatorios" asChild>
+            <Link href="/finanzas/movimientos-recurrentes" asChild>
               <Pressable hitSlop={8}>
-                <ThemedView type="backgroundElement" style={styles.botonIcono}>
-                  <Ionicons name="repeat" size={18} color={theme.text} />
-                </ThemedView>
+                <View style={[styles.botonIcono, { backgroundColor: theme.accentSoft }]}>
+                  <Ionicons name="repeat" size={18} color={theme.accent} />
+                </View>
               </Pressable>
             </Link>
             <Link href="/finanzas/configuracion" asChild>
               <Pressable hitSlop={8}>
-                <ThemedView type="backgroundElement" style={styles.botonIcono}>
-                  <Ionicons name="settings-outline" size={18} color={theme.text} />
-                </ThemedView>
+                <View style={[styles.botonIcono, { backgroundColor: theme.accentSoft }]}>
+                  <Ionicons name="settings-outline" size={18} color={theme.accent} />
+                </View>
               </Pressable>
             </Link>
           </View>
@@ -93,36 +93,40 @@ export default function FinanzasScreen() {
           ListHeaderComponent={
             <View style={styles.header}>
               <View style={styles.cards}>
-                <ThemedView type="backgroundElement" style={styles.card}>
+                <Card style={styles.card}>
                   <ThemedText type="small" themeColor="textSecondary">
                     Saldo total
                   </ThemedText>
-                  <ThemedText type="title" style={styles.cardValor}>
+                  <ThemedText type="title" style={[styles.cardValor, { color: theme.accent }]}>
                     {formatearMonto(saldoTotal)}
                   </ThemedText>
-                </ThemedView>
-                <ThemedView type="backgroundElement" style={styles.card}>
+                </Card>
+                <Card style={styles.card}>
                   <ThemedText type="small" themeColor="textSecondary">
                     Disponible para gastar
                   </ThemedText>
                   <ThemedText
                     type="title"
-                    style={[styles.cardValor, (resumen?.disponible ?? 0) < 0 && styles.negativo]}>
+                    style={[
+                      styles.cardValor,
+                      { color: theme.accent },
+                      (resumen?.disponible ?? 0) < 0 && styles.negativo,
+                    ]}>
                     {formatearMonto(resumen?.disponible ?? 0)}
                   </ThemedText>
-                </ThemedView>
+                </Card>
               </View>
 
-              <ThemedView type="backgroundElement" style={styles.ahorroCard}>
+              <Card style={styles.ahorroCard}>
                 <ThemedText type="smallBold">Ahorro de {NOMBRE_MES}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   Objetivo: {formatearMonto(resumen?.ahorroObjetivo ?? 0)} · Real hasta ahora:{' '}
                   {formatearMonto(resumen?.ahorroReal ?? 0)}
                 </ThemedText>
-              </ThemedView>
+              </Card>
 
               {resumen && resumen.porCategoriaGasto.length > 0 && (
-                <ThemedView type="backgroundElement" style={styles.resumenCategorias}>
+                <Card style={styles.resumenCategorias}>
                   <ThemedText type="smallBold">Gasto por categoría</ThemedText>
                   {resumen.porCategoriaGasto.map((c) => (
                     <View key={c.categoria} style={styles.filaCategoria}>
@@ -136,28 +140,28 @@ export default function FinanzasScreen() {
                         <View
                           style={[
                             styles.barraRelleno,
-                            { width: `${maxCategoria ? (c.monto / maxCategoria) * 100 : 0}%`, backgroundColor: theme.text },
+                            { width: `${maxCategoria ? (c.monto / maxCategoria) * 100 : 0}%`, backgroundColor: theme.accent },
                           ]}
                         />
                       </View>
                     </View>
                   ))}
-                </ThemedView>
+                </Card>
               )}
 
               <View style={styles.botonesAgregar}>
-                <Pressable style={styles.botonAgregarFlex} onPress={() => router.push('/finanzas/movimiento-form?tipo=gasto')}>
-                  <ThemedView type="backgroundSelected" style={styles.botonAgregar}>
-                    <Ionicons name="remove-circle-outline" size={18} color={theme.text} />
-                    <ThemedText type="smallBold">Gasto</ThemedText>
-                  </ThemedView>
-                </Pressable>
-                <Pressable style={styles.botonAgregarFlex} onPress={() => router.push('/finanzas/movimiento-form?tipo=ganancia')}>
-                  <ThemedView type="backgroundSelected" style={styles.botonAgregar}>
-                    <Ionicons name="add-circle-outline" size={18} color={theme.text} />
-                    <ThemedText type="smallBold">Ganancia</ThemedText>
-                  </ThemedView>
-                </Pressable>
+                <AppButton
+                  label="Gasto"
+                  icono="remove-circle-outline"
+                  flex
+                  onPress={() => router.push('/finanzas/movimiento-form?tipo=gasto')}
+                />
+                <AppButton
+                  label="Ganancia"
+                  icono="add-circle-outline"
+                  flex
+                  onPress={() => router.push('/finanzas/movimiento-form?tipo=ganancia')}
+                />
               </View>
 
               <ThemedText type="small" themeColor="textSecondary" style={styles.seccion}>
@@ -174,11 +178,7 @@ export default function FinanzasScreen() {
             <MovimientoRow
               movimiento={item}
               onEliminar={() => onEliminar(item.id)}
-              onEditar={
-                item.tipo === 'gasto' || item.tipo === 'ganancia'
-                  ? () => router.push(`/finanzas/movimiento-form?id=${item.id}`)
-                  : undefined
-              }
+              onEditar={() => router.push(`/finanzas/movimiento-form?id=${item.id}`)}
             />
           )}
         />
@@ -197,15 +197,16 @@ function MovimientoRow({
   onEditar?: () => void;
 }) {
   const theme = useTheme();
-  const esIngreso = movimiento.tipo === 'sueldo' || movimiento.tipo === 'ganancia';
+  const esIngreso = movimiento.tipo === 'ganancia';
 
   return (
-    <ThemedView type="backgroundElement" style={styles.row}>
+    <Card style={styles.row}>
       <Pressable style={styles.rowText} onPress={onEditar} disabled={!onEditar}>
         <ThemedText>{movimiento.titulo}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           {movimiento.fecha}
           {movimiento.categoria_nombre ? ` · ${movimiento.categoria_nombre}` : ''} · {TIPO_LABEL[movimiento.tipo]}
+          {movimiento.movimiento_recurrente_id ? ' · Recurrente' : ''}
         </ThemedText>
       </Pressable>
       <ThemedText type="smallBold" style={esIngreso ? styles.montoIngreso : styles.montoGasto}>
@@ -215,7 +216,7 @@ function MovimientoRow({
       <Pressable onPress={onEliminar} hitSlop={8}>
         <Ionicons name="trash-outline" size={18} color={theme.textSecondary} />
       </Pressable>
-    </ThemedView>
+    </Card>
   );
 }
 
@@ -228,22 +229,20 @@ const styles = StyleSheet.create({
   botonIcono: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   header: { gap: Spacing.three },
   cards: { flexDirection: 'row', gap: Spacing.three },
-  card: { flex: 1, borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.one },
+  card: { flex: 1, gap: Spacing.one },
   cardValor: { fontSize: 22, lineHeight: 26 },
   negativo: { color: '#D64545' },
-  ahorroCard: { borderRadius: Spacing.three, padding: Spacing.three, gap: 4 },
-  resumenCategorias: { borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
+  ahorroCard: { gap: 4 },
+  resumenCategorias: { gap: Spacing.two },
   filaCategoria: { gap: 4 },
   filaCategoriaTexto: { flexDirection: 'row', justifyContent: 'space-between' },
   barraFondo: { height: 6, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.25)', overflow: 'hidden' },
   barraRelleno: { height: 6, borderRadius: 3 },
   botonesAgregar: { flexDirection: 'row', gap: Spacing.two },
-  botonAgregarFlex: { flex: 1 },
-  botonAgregar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, padding: Spacing.two, borderRadius: Spacing.three },
   seccion: { marginTop: Spacing.one },
   vacio: { paddingVertical: Spacing.three, textAlign: 'center' },
   lista: { gap: Spacing.two, paddingBottom: Spacing.six },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, padding: Spacing.three, borderRadius: Spacing.three },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   rowText: { flex: 1, gap: 2 },
   montoIngreso: { color: '#3C9A5F' },
   montoGasto: { color: '#D64545' },
