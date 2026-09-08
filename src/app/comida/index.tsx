@@ -11,7 +11,7 @@ import { Spacing } from '@/constants/theme';
 const OPCIONES = [
   { href: '/comida/ingredientes', icon: 'nutrition-outline', titulo: 'Ingredientes', desc: 'Alimentos genéricos con valores nutricionales' },
   { href: '/comida/productos', icon: 'pricetags-outline', titulo: 'Productos', desc: 'Productos de marca, con sus propios valores' },
-  { href: '/comida/recetas', icon: 'book-outline', titulo: 'Recetas', desc: 'Próximamente: armar recetas con ingredientes y productos' },
+  { href: '/comida/recetas', icon: 'book-outline', titulo: 'Recetas', desc: 'Arma recetas a partir de ingredientes y productos' },
 ] as const;
 
 export default function ComidaHubScreen() {

@@ -109,15 +109,17 @@ CREATE TABLE producto_equivalencias_unidad (
   UNIQUE(producto_id, unidad_id)
 );
 
-CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc.
+CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc. (catalogo editable, con semilla inicial)
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
 );
+INSERT INTO tipos_comida (nombre) VALUES ('Desayuno'), ('Almuerzo'), ('Cena'), ('Snack');
 
-CREATE TABLE etiquetas_dieteticas ( -- vegetariano, sin gluten, vegano, etc.
+CREATE TABLE etiquetas_dieteticas ( -- vegetariano, sin gluten, vegano, etc. (catalogo editable, con semilla inicial)
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
 );
+INSERT INTO etiquetas_dieteticas (nombre) VALUES ('Vegetariano'), ('Vegano'), ('Sin gluten'), ('Sin lactosa');
 
 CREATE TABLE recetas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

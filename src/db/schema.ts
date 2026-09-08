@@ -1,7 +1,5 @@
-// Generado a partir de db/schema.sql (raíz del repo) — no editar a mano.
-// Si cambias el modelo de datos, edita db/schema.sql y vuelve a generar este archivo.
-export const SCHEMA_SQL = `
--- ============================================================
+// AUTO-GENERADO desde db/schema.sql — no editar a mano, correr el script de regeneracion.
+export const SCHEMA_SQL = `-- ============================================================
 -- Takt — Esquema de base de datos SQLite
 -- Basado en FEATURES.md (borrador v15)
 -- Convenciones: fechas como TEXT ISO-8601 ('YYYY-MM-DD' o 'YYYY-MM-DD HH:MM'),
@@ -112,15 +110,17 @@ CREATE TABLE producto_equivalencias_unidad (
   UNIQUE(producto_id, unidad_id)
 );
 
-CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc.
+CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc. (catalogo editable, con semilla inicial)
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
 );
+INSERT INTO tipos_comida (nombre) VALUES ('Desayuno'), ('Almuerzo'), ('Cena'), ('Snack');
 
-CREATE TABLE etiquetas_dieteticas ( -- vegetariano, sin gluten, vegano, etc.
+CREATE TABLE etiquetas_dieteticas ( -- vegetariano, sin gluten, vegano, etc. (catalogo editable, con semilla inicial)
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
 );
+INSERT INTO etiquetas_dieteticas (nombre) VALUES ('Vegetariano'), ('Vegano'), ('Sin gluten'), ('Sin lactosa');
 
 CREATE TABLE recetas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -511,5 +511,4 @@ CREATE TABLE configuracion_app (
   dias_aviso_respaldo INTEGER NOT NULL DEFAULT 14,
   ultimo_respaldo_en TEXT
 );
-
 `;
