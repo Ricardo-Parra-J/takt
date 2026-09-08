@@ -31,10 +31,15 @@ CREATE TABLE ingredientes (
 );
 CREATE INDEX idx_ingredientes_nombre ON ingredientes(nombre);
 
+CREATE TABLE marcas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE productos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL,
-  marca TEXT,
+  marca_id INTEGER REFERENCES marcas(id),
   porcion_base_cantidad REAL NOT NULL DEFAULT 100,
   porcion_base_unidad TEXT NOT NULL DEFAULT 'g',
   calorias REAL,
@@ -49,7 +54,7 @@ CREATE TABLE productos (
   actualizado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX idx_productos_nombre ON productos(nombre);
-CREATE INDEX idx_productos_marca ON productos(marca);
+CREATE INDEX idx_productos_marca ON productos(marca_id);
 
 CREATE TABLE tipos_comida ( -- desayuno, almuerzo, cena, snack, etc.
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -184,8 +189,14 @@ CREATE TABLE recurrencias (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   frecuencia TEXT NOT NULL, -- 'diaria' | 'semanal' | 'mensual' | 'anual'
   intervalo INTEGER NOT NULL DEFAULT 1,
-  dias_semana TEXT, -- ej '1,3,5' (lun, mié, vie) para frecuencia semanal
   fecha_fin TEXT -- NULL = se repite indefinidamente hasta que se elimine
+);
+
+-- Días de la semana de una recurrencia semanal (una fila por día, no una lista en texto)
+CREATE TABLE recurrencia_dias_semana (
+  recurrencia_id INTEGER NOT NULL REFERENCES recurrencias(id) ON DELETE CASCADE,
+  dia_semana INTEGER NOT NULL, -- 0=lunes .. 6=domingo
+  PRIMARY KEY (recurrencia_id, dia_semana)
 );
 
 CREATE TABLE eventos_calendario (

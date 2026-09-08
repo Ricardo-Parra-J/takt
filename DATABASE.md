@@ -1,6 +1,6 @@
 # Takt — Modelo de base de datos (SQLite)
 
-Basado en `FEATURES.md` (borrador v15). El esquema completo en SQL está en `db/schema.sql` (39 tablas, ya probado: se ejecuta sin errores y las reglas de integridad funcionan como se espera).
+Basado en `FEATURES.md` (borrador v15). El esquema completo en SQL está en `db/schema.sql` (41 tablas, ya probado: se ejecuta sin errores y las reglas de integridad funcionan como se espera).
 
 ## Cómo leer esto
 
@@ -49,6 +49,18 @@ Por cada módulo, las tablas principales y para qué sirven. El detalle de colum
 ## Configuración general
 
 - `configuracion_app` — tema, bloqueo (PIN/huella), y cuándo fue el último respaldo (para el recordatorio periódico de exportar).
+
+## Normalización (hasta 4FN)
+
+Se revisó tabla por tabla contra 1FN, 2FN, 3FN, BCNF y 4FN. Se encontró y corrigió una violación real:
+
+- **1FN violada (corregido):** `recurrencias` tenía un campo `dias_semana` con una lista separada por comas (ej. `'1,3,5'`) — eso es un grupo repetido metido en una sola columna, no un valor atómico. Se separó en una tabla `recurrencia_dias_semana` (una fila por día), que de paso ya cumple 4FN para esa relación (no mezcla dos hechos multivaluados independientes en una sola tabla).
+- **Mejora aplicada (no era una violación estricta, pero valía la pena):** `productos.marca` era texto libre repetido en cada fila (riesgo de inconsistencias como "Soprole" vs "soprole"). Se normalizó a una tabla `marcas` con `productos.marca_id` como referencia.
+- **2FN:** no aplica ningún problema — casi todas las tablas usan una clave sustituta de una sola columna (`id`), y las únicas con clave compuesta (`receta_tipos_comida`, `receta_etiquetas_dieteticas`, `recurrencia_dias_semana`) son tablas puente sin atributos no clave, así que no puede haber dependencia parcial.
+- **3FN / BCNF:** revisadas, no encontré dependencias transitivas reales. El único caso dudoso era `movimientos_financieros.tipo` pareciendo redundante con `gasto_obligatorio_id` (si `gasto_obligatorio_id` no es nulo, `tipo` siempre es `'gasto_obligatorio'`) — pero como esa relación no se cumple para todas las filas (cuando `gasto_obligatorio_id` es nulo, `tipo` puede ser `sueldo`, `ganancia` o `gasto`), no es una dependencia funcional real en el sentido estricto, así que se deja como está: es un campo "discriminador" útil para no tener que revisar nulls y hacer join en cada consulta de saldo.
+- **4FN:** revisadas las tablas puente (`receta_ingredientes`, `receta_productos`, `receta_tipos_comida`, etc.) — cada una representa una sola relación, sin mezclar dos hechos multivaluados independientes en la misma tabla, que es justo lo que 4FN exige.
+
+**Una excepción de diseño, a propósito:** `eventos_calendario` tiene varias columnas de referencia opcionales (`receta_id`, `preset_rutina_id`, `sesion_entrenamiento_id`, `tarea_id`, etc.) donde solo una aplica según el `tipo` de evento. Esto no es una violación de 1FN-4FN (ninguna de esas columnas es multivaluada), pero tampoco es la forma más "pura" posible — un diseño estrictamente purista dividiría esto en una tabla por tipo de evento. Se optó deliberadamente por no hacerlo: separarlo complicaría mucho consultas básicas como "muéstrame el calendario de esta semana" (habría que unir muchas tablas con UNION) a cambio de un beneficio casi nulo en una app personal de un solo usuario.
 
 ## Decisiones de diseño a tener presente
 
