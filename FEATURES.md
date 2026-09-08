@@ -1,6 +1,14 @@
-# Takt — Especificación funcional (borrador v3)
+# Takt — Especificación funcional (borrador v4)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
+
+## Arquitectura de datos — DECIDIDO
+
+**Backend: Supabase (plan gratuito), sin costo.**
+
+Motivo: los datos de Takt son muy relacionales (recetas hechas de ingredientes con cantidades, rutinas hechas de ejercicios con series/repeticiones/peso, tareas con categorías, gastos con categorías), y Supabase es una base de datos Postgres real, más natural para esto que una base NoSQL como Firebase/Firestore. Además incluye autenticación de usuario y sincroniza automáticamente entre dispositivos.
+
+Límites del plan gratuito de Supabase (suficiente de sobra para un solo usuario): 500 MB de base de datos, 1 GB de almacenamiento de archivos, 5 GB de tráfico de salida al mes, solicitudes a la API ilimitadas. La única letra chica: un proyecto gratuito se pausa si pasa **1 semana sin actividad** — no se pierden datos, solo hay que "despausarlo" con un clic en el panel de Supabase; en un uso diario normal esto no debería pasar nunca.
 
 ## 1. Comida
 
@@ -24,6 +32,9 @@ Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finan
 
 - Tipos de evento: clases, gimnasio, comidas, viajes, estudio, entrega de trabajos, certámenes (evaluaciones), etc.
 - Conexión con otros módulos: comida → Comida, gimnasio → Deporte, clases/entregas/evaluaciones → Tareas.
+- Sincronización con Google Calendar — confirmado, Fase 2 (requiere integración con API externa).
+- Reacomodo automático de bloques si una actividad se atrasa — confirmado, Fase 2 (función avanzada).
+- Plantillas de horario reutilizables (ej. semana tipo con clases y gimnasio fijos) — confirmado, Fase 1.
 
 **Dudas pendientes:**
 - Recurrencia de eventos (clases semanales) — ¿se configura una vez y se repite sola?
@@ -37,6 +48,7 @@ Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finan
 - Se conecta con Calendario (fechas de entrega/evaluación aparecen ahí también).
 - Se puede marcar como completada (como una to-do list).
 - **Pendiente** = fuera de plazo. **Activa** = aún dentro de plazo.
+- Metas de mediano/largo plazo (objetivos trimestrales o anuales) — confirmado, se modelan como tareas de plazo largo dentro de este mismo módulo.
 
 **⚠️ Punto a confirmar:** esta definición hace que "pendiente" sea básicamente lo mismo que "atrasada" (mencionado en la idea original como una cuarta vista aparte). ¿"Pendiente" y "Atrasada" son la misma vista, o quieres que sean cosas distintas? Y las tareas sin plazo definido, ¿son siempre "activas" hasta completarse?
 
@@ -63,30 +75,24 @@ Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finan
 - ¿Una Rutina es una plantilla planificada que después ejecutas y comparas contra lo real, o el registro ES directamente lo que hiciste ese día?
 - ¿Los ejercicios se agrupan por grupo muscular (pecho, espalda, piernas, cardio)?
 
-## Funcionalidades del borrador original — pendientes de decidir
+## Sueño
 
-Del primer brainstorm, esto es lo que **todavía no está incluido** en la especificación actual. Van con mi recomendación:
+Confirmado que se agrega, pero no encaja de lleno en ninguno de los 5 módulos. Propuesta: registro rápido de horas y calidad de sueño directo desde el Dashboard (sin ser un módulo aparte), ya que no tiene módulo propio como los otros. A confirmar.
 
-**Sueño, ánimo y hábitos generales**
-- Sueño (horas y calidad) — confirmado que se agrega. Falta decidir en qué módulo vive (¿Comida? ¿uno nuevo?).
-- Estado de ánimo diario (mood tracker) — no se ha confirmado. Recomendación: agregarlo, es liviano de construir y complementa bien el dashboard.
-- Hábitos personalizados con rachas/streaks (ej. leer, meditar, no fumar) — no hay módulo para esto en el diseño actual de 5 módulos. Recomendación: si te importa mantener hábitos generales (no solo comida/deporte/tareas), conviene un 6to módulo "Hábitos"; si no, lo dejamos fuera.
-- Journaling / notas personales — no incluido. Recomendación: opcional, baja prioridad, se puede agregar después sin afectar el resto.
-- Metas de mediano/largo plazo (trimestrales/anuales) — no incluido. Recomendación: útil pero se puede posponer a una fase 2.
+## Transversales confirmadas
 
-**Horarios**
-- Sincronización con calendario del teléfono (Google Calendar) — no incluido. Recomendación: agregar más adelante, no es crítico para la v1 y es más trabajo técnico (requiere integrarse con APIs externas).
-- Reacomodo automático de bloques si una actividad se atrasa — no incluido. Recomendación: es una función avanzada, dejar para después.
-- Plantillas de horario reutilizables — no incluido. Recomendación: agregar, es simple y muy útil dado que mencionaste rutinas fijas (clases, gimnasio).
+- Modo oscuro y claro — Fase 1, estándar.
+- Exportar datos (CSV/PDF) — Fase 2, principalmente útil para Finanzas.
+- Widgets de pantalla de inicio — Fase 2 (requiere trabajo nativo extra).
+- Personalización visual (temas, colores, íconos) — Fase 2.
+- Multi-dispositivo — viene incluido al usar Supabase como backend.
 
-**Transversales / técnicas**
-- Modo oscuro y claro — no incluido explícitamente. Recomendación: sí, es estándar hoy en día.
-- Backup automático / sincronización en la nube — no incluido. Esto es una decisión de arquitectura importante: define si la app funciona solo local en tu teléfono o si necesita una cuenta/servidor. Recomendación: definirlo pronto porque afecta cómo se construye todo lo demás.
-- Multi-dispositivo — depende directamente de la decisión anterior.
-- Exportar datos (CSV/PDF) — no incluido. Recomendación: útil sobre todo para Finanzas, se puede agregar sin apuro.
-- Widgets de pantalla de inicio — no incluido. Recomendación: dejar para una fase posterior (requiere trabajo nativo extra).
-- Personalización visual (temas/colores/íconos) — no incluido. Recomendación: baja prioridad, fase posterior.
+## Descartado
+
+- **Estado de ánimo (mood tracker)** — descartado.
+- **Módulo de Hábitos generales con rachas** (leer, meditar, no fumar, etc.) — descartado, la app se queda con los 5 módulos definidos.
+- **Journaling / notas personales** — descartado, ya usas Obsidian en tu computador para esto.
 
 ---
 
-**Siguiente paso:** decidir sobre estos puntos pendientes y las dudas de cada módulo.
+**Siguiente paso:** resolver las dudas pendientes de cada módulo (marcadas arriba) para cerrar la especificación.
