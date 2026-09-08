@@ -1,4 +1,4 @@
-# Takt — Especificación funcional (borrador v10)
+# Takt — Especificación funcional (borrador v11)
 
 Dashboard principal con 5 módulos: **Comida, Calendario, Deporte, Tareas, Finanzas**.
 
@@ -51,10 +51,8 @@ Para que esto funcione bien conviene que la propia app incluya un botón "copiar
 
 **Planificador semanal de comidas — confirmado, NUEVO.**
 - Se pueden asignar recetas a los días/bloques de comida de la semana.
-- A partir de ese plan semanal, se arma automáticamente la lista de compras.
-
-**Dudas pendientes:**
-- La lista de compras automática, ¿resta lo que ya tienes en casa (inventario/despensa) o simplemente junta todos los ingredientes de las recetas planificadas de la semana, sin llevar inventario?
+- A partir de ese plan semanal, se arma automáticamente la lista de compras, juntando los ingredientes/productos necesarios de todas las recetas planificadas.
+- **Lista de compras editable — confirmado.** No lleva inventario/despensa persistente; en vez de eso, la lista generada se puede revisar a mano: el usuario chequea en su casa qué ya tiene y puede marcar como conseguido o eliminar esos ítems de la lista antes de ir a comprar.
 
 ## 2. Calendario
 
@@ -118,7 +116,7 @@ Solo dos estados guardados, más una vista calculada:
 
 No encajan de lleno en ninguno de los 5 módulos, así que viven como registros rápidos desde el Dashboard en vez de tener módulo propio.
 
-- **Sueño** — confirmado que se agrega: horas dormidas y calidad del descanso. A confirmar si vive en el Dashboard como propuse.
+- **Sueño — confirmado.** Horas dormidas y calidad del descanso, registrado como check rápido desde el Dashboard.
 - **Peso corporal — confirmado, NUEVO.** Registro simple de peso a lo largo del tiempo, que conecta con las metas nutricionales de Comida y el progreso de entrenamiento de Deporte.
 
 ## Transversales confirmadas
@@ -140,4 +138,6 @@ No encajan de lleno en ninguno de los 5 módulos, así que viven como registros 
 
 ---
 
-**Siguiente paso:** resolver las dudas pendientes de cada módulo (marcadas arriba) para cerrar la especificación.
+**Estado: especificación cerrada.** Todas las dudas de los 5 módulos, la arquitectura de datos y las funcionalidades transversales quedaron resueltas. Queda pendiente solo una duda menor dentro de "Exportación e Importación": si la importación asistida por IA se extiende a otros tipos de contenido además de Recetas y Entrenamientos.
+
+**Siguiente paso:** diseñar el modelo de datos (tablas SQLite) y planificar las pantallas de la app.
